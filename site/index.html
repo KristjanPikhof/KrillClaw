@@ -138,7 +138,7 @@ dialog{animation:dialogIn 0.2s ease}
 
 <div class="hero">
 <img src="assets/hero-banner.jpg" alt="KrillClaw — kawaii shrimp mascot with retro CRT aesthetic" style="width:100%;max-width:700px;border-radius:12px;margin:0 auto 1.5rem;display:block;box-shadow:0 0 60px #ff886620">
-<p class="tagline">The smallest AI agent runtime for edge devices.</p>
+<h1 class="tagline">The smallest AI agent runtime for edge devices.</h1>
 <p style="color:#ff6600;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem">Patent Pending</p>
 <p class="size">49KB</p>
 <p style="color:#ff8833;font-size:1.3rem;margin-bottom:0.5rem;font-weight:600">full: ≤500KB</p>
@@ -735,7 +735,7 @@ zig build -Doptimize=ReleaseSmall
 </details>
 <details class="faq-item">
 <summary>How much does the API cost?</summary>
-<div class="faq-answer">Typical usage: $0.50–2/month. You bring your own API key (on the hub or phone) and control the budget. KrillClaw itself is free and open source.</div>
+<div class="faq-answer">Typical usage: $0.50–$2/month. You bring your own API key (on the hub or phone) and control the budget. KrillClaw itself is free and open source.</div>
 </details>
 <details class="faq-item">
 <summary>What happens when connectivity drops?</summary>
@@ -793,7 +793,9 @@ zig build -Doptimize=ReleaseSmall
     "@type": "Organization",
     "name": "Accelerando AI",
     "url": "https://accelerando.ai"
-  }
+  },
+  "softwareVersion": "0.1.0",
+  "downloadUrl": "https://github.com/krillclaw/KrillClaw"
 }
 </script>
 
@@ -926,7 +928,7 @@ function wlSubmit(){
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"Does KrillClaw need WiFi?","acceptedAnswer":{"@type":"Answer","text":"Lite (49KB): No. Connects via BLE or serial to a nearby gateway. Full (≤500KB): Yes, connects directly to LLM APIs over WiFi/HTTP."}},
 {"@type":"Question","name":"What is the difference between Lite and Full?","acceptedAnswer":{"@type":"Answer","text":"Lite is a 49KB BLE/serial agent for ultra-constrained devices. Full is a ≤500KB agent with built-in HTTP/TLS for autonomous operation."}},
-{"@type":"Question","name":"How much does the API cost?","acceptedAnswer":{"@type":"Answer","text":"Typical usage: zsh.50–2/month. You bring your own API key and control the budget. KrillClaw itself is free."}},
+{"@type":"Question","name":"How much does the API cost?","acceptedAnswer":{"@type":"Answer","text":"Typical usage: $0.50–$2/month. You bring your own API key and control the budget. KrillClaw itself is free."}},
 {"@type":"Question","name":"Is it really 49KB?","acceptedAnswer":{"@type":"Answer","text":"The lite profile is 49KB — BLE/serial transport, no HTTP stack, no TLS. The full profile is ≤500KB with HTTP/TLS. Both are smaller than any competitor."}}
 ]}
 </script>
