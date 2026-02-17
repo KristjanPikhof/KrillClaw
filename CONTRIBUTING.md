@@ -1,59 +1,36 @@
 # Contributing to KrillClaw
 
-Thank you for your interest in contributing to KrillClaw! This document provides guidelines for contributing.
+Thanks for your interest in contributing to KrillClaw! Here's how to get started.
 
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/KrillClaw.git`
-3. Create a feature branch: `git checkout -b feature/your-feature`
-4. Install Zig 0.13+ from https://ziglang.org/download/
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run the tests (`zig build test`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## Building
+## Development Setup
 
-```bash
-# Debug build
-zig build
-
-# Release build
-zig build -Doptimize=ReleaseSmall
-
-# Run tests
-zig build test
-```
+- Install [Zig 0.15+](https://ziglang.org/download/)
+- Clone the repo: `git clone https://github.com/krillclaw/KrillClaw.git`
+- Build: `zig build`
+- Test: `zig build test`
+- Release build: `zig build -Doptimize=ReleaseSmall`
 
 ## Code Style
 
-- Follow Zig standard library conventions
-- Run `zig fmt` before committing
+- Follow standard Zig conventions
 - Keep functions small and focused
-- Add inline tests for new functionality
-
-## Pull Request Process
-
-1. Ensure your code builds cleanly: `zig build`
-2. Ensure all tests pass: `zig build test`
-3. Ensure the release binary stays under 300KB: `zig build -Doptimize=ReleaseSmall`
-4. Update documentation if you changed behavior
-5. Write a clear PR description explaining the change and motivation
-6. Link any related issues
-
-## Binary Size Policy
-
-KrillClaw's identity is being tiny. PRs that significantly increase binary size need strong justification. The CI gate enforces a 300KB limit on the release binary.
+- Add tests for new functionality
+- Document public APIs
 
 ## Reporting Bugs
 
-Use the [bug report template](https://github.com/krillclaw/KrillClaw/issues/new?template=bug_report.md).
-
-## Suggesting Features
-
-Use the [feature request template](https://github.com/krillclaw/KrillClaw/issues/new?template=feature_request.md).
-
-## Security Issues
-
-Please report security vulnerabilities privately. See [SECURITY.md](SECURITY.md).
+Use [GitHub Issues](https://github.com/krillclaw/KrillClaw/issues) with the bug report template.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the BSL 1.1, converting to Apache 2.0 after 4 years per the project license terms.
+By contributing, you agree that your contributions will be licensed under the project's BSL 1.1 license.
