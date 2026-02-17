@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KrillClaw™ — The Smallest Edge AI Agent Runtime</title>
+<meta name="description" content="KrillClaw — the smallest AI agent runtime. 49KB binary, zero dependencies, written in Zig. Tested on 350+ edge devices. Works with any OpenAI-compatible LLM.">
+<meta name="keywords" content="edge AI, agent runtime, Zig, embedded AI, IoT, ESP32, microcontroller, LLM, Claude, OpenAI, Ollama, BLE, minimal, lightweight, zero dependencies">
+<meta property="og:title" content="KrillClaw™ — The Smallest Edge AI Agent Runtime">
+<meta property="og:description" content="49KB AI agent runtime. Tested on 350+ edge devices from $3 ESP32 to Raspberry Pi.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://krillclaw.com">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KrillClaw — 49KB Edge AI Runtime">
+<meta name="twitter:description" content="The smallest AI agent runtime. 49KB. Tested on 350+ edge devices. Works with any LLM.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="canonical" href="https://krillclaw.com">
+<meta property="og:image" content="https://krillclaw.com/assets/og-image.jpg">
+<meta name="twitter:image" content="https://krillclaw.com/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="alternate" hreflang="en" href="https://krillclaw.com">
+<link rel="alternate" hreflang="zh" href="https://krillclaw.com/zh/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow-x:hidden;background:#0a0a0a;color:#e0e0e0;font-family:'SF Mono','Fira Code',monospace;line-height:1.6}
+.container{max-width:900px;margin:0 auto;padding:2rem}
+.hero{text-align:center;padding:4rem 0}
+.hero h1{font-size:2.5rem;color:#00ff88;margin-bottom:0.5rem}
+.hero .tagline{font-size:1.3rem;color:#888;margin-bottom:2rem}
+.hero .size{font-size:4rem;font-weight:bold;color:#fff;margin:1rem 0}
+pre.install{background:#111;border:1px solid #333;border-radius:8px;padding:1.5rem;margin:2rem auto;max-width:600px;text-align:left;overflow-x:auto;color:#00ff88}
+table{width:100%;border-collapse:collapse;margin:2rem 0}
+th,td{padding:0.75rem 1rem;text-align:center;border-bottom:1px solid #222}
+th{color:#00ff88;font-size:0.85rem;text-transform:uppercase}
+td:first-child{text-align:left;color:#fff;font-weight:bold}
+.highlight{color:#00ff88;font-weight:bold}
+h2{color:#00ff88;margin:3rem 0 1rem;font-size:1.5rem}
+.section{padding:2.5rem 0;border-top:1px solid #1a1a1a}
+footer{text-align:center;padding:3rem 0;color:#555;font-size:0.85rem;border-top:1px solid #1a1a1a;margin-top:3rem}
+a{color:#00ff88;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.mascot-hero{width:180px;height:180px;border-radius:50%;border:3px solid #00ff88;box-shadow:0 0 40px #00ff8830;margin:0 auto 1.5rem;display:block;animation:mascotFloat 3s ease-in-out infinite}
+.mascot-inline{width:36px;height:36px;border-radius:50%;vertical-align:middle;margin-right:0.5rem;border:1px solid #00ff8860}
+.mascot-cta{width:80px;height:80px;border-radius:50%;border:2px solid #00ff88;margin:0 auto 1rem;display:block;animation:mascotFloat 3s ease-in-out infinite}
+.mascot-footer{width:40px;height:40px;border-radius:50%;opacity:0.6;vertical-align:middle;margin-right:0.5rem}
+@keyframes mascotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+.cta{display:inline-block;padding:1rem 2rem;background:#00ff88;color:#0a0a0a;font-weight:bold;border-radius:8px;font-size:1.1rem;margin:1rem 0.5rem;text-decoration:none}
+.cta:hover{background:#00cc6a;text-decoration:none}
+.cta.secondary{background:transparent;border:2px solid #00ff88;color:#00ff88}
+.cta.secondary:hover{background:#00ff8820}
+
+/* Marquee */
+.marquee-section{margin:2rem 0;overflow:hidden;position:relative}
+.marquee-section::before,.marquee-section::after{content:'';position:absolute;top:0;bottom:0;width:60px;z-index:2;pointer-events:none}
+.marquee-section::before{left:0;background:linear-gradient(to right,#0a0a0a,transparent)}
+.marquee-section::after{right:0;background:linear-gradient(to left,#0a0a0a,transparent)}
+.marquee-row{display:flex;width:max-content;gap:0.6rem;padding:0.3rem 0}
+.marquee-row.scroll-left{animation:scrollLeft 60s linear infinite}
+.marquee-row.scroll-right{animation:scrollRight 55s linear infinite}
+.marquee-row.scroll-left-slow{animation:scrollLeft 70s linear infinite}
+.marquee-row:hover{animation-play-state:paused}
+.marquee-tag{display:inline-block;padding:0.4rem 0.8rem;border:1px solid #333;border-radius:6px;font-size:0.75rem;color:#888;white-space:nowrap;cursor:default;transition:border-color 0.2s,color 0.2s}
+.marquee-tag:hover{border-color:#00ff88;color:#00ff88;border-width:2px;padding:calc(0.4rem - 1px) calc(0.8rem - 1px)}
+@keyframes scrollLeft{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes scrollRight{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
+@keyframes scrollProviders{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Carousel v2 */
+.carousel-container{position:relative}
+.pill-switcher{display:flex;justify-content:center;margin-bottom:1.5rem}
+.pill-track{display:inline-flex;background:#111;border:1px solid #222;border-radius:24px;padding:3px;gap:2px}
+.pill-btn{background:transparent;border:none;color:#666;padding:0.45rem 1rem;border-radius:20px;font-family:inherit;font-size:0.78rem;cursor:pointer;transition:all 0.25s ease;white-space:nowrap;letter-spacing:0.02em}
+.pill-btn:hover{color:#aaa}
+.pill-btn.active{background:#00ff8818;color:#00ff88}
+.carousel-viewport{overflow:hidden;border-radius:10px}
+.carousel-track{display:flex;transition:transform 0.4s ease}
+.carousel-column{min-width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;padding:0.25rem}
+@media(min-width:600px){.carousel-column{grid-template-columns:repeat(3,1fr)}}
+
+/* Cards */
+.hw-card-v2{background:#111;border:1px solid #222;border-radius:10px;padding:1.3rem 1rem;text-align:center;cursor:pointer;opacity:0;transform:translateY(16px);transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s}
+.hw-card-v2:hover{border-color:#00ff88;transform:translateY(-2px) !important;box-shadow:0 6px 24px #00ff8810}
+.carousel-column.active .hw-card-v2{animation:fadeUp 0.35s ease forwards;animation-delay:calc(var(--i) * 0.06s)}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+.hw-card-v2 .price{font-size:1.4rem;color:#00ff88;font-weight:bold}
+.hw-card-v2 .name{color:#fff;margin:0.3rem 0;font-weight:600;font-size:0.85rem}
+.hw-card-v2 .spec{color:#555;font-size:0.75rem}
+.hw-card-v2 .profile-badge{display:inline-block;margin-top:0.5rem;padding:0.15rem 0.5rem;border-radius:8px;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.04em}
+.carousel-column[data-column="devboards"] .profile-badge{background:#00ff8812;color:#00ff88}
+.carousel-column[data-column="iot"] .profile-badge{background:#00aaff12;color:#00aaff}
+.carousel-column[data-column="robotics"] .profile-badge{background:#ff660012;color:#ff8833}
+
+/* Collapsible use case cards */
+.usecase-card{border:1px solid #1a1a1a;border-radius:12px;overflow:hidden}
+.usecase-card summary{padding:1.2rem 1.5rem;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.usecase-card summary::-webkit-details-marker{display:none}
+.usecase-card summary::after{content:'+';color:#555;font-size:1.2rem;font-weight:bold;transition:transform 0.2s}
+.usecase-card[open] summary::after{content:'−'}
+.usecase-card .card-body{padding:0 1.5rem 1.5rem}
+
+/* Built Different grid */
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin:2rem 0}
+@media(min-width:700px){.features-grid{grid-template-columns:repeat(3,1fr)}}
+.feature-card{background:#111;border:1px solid #222;border-radius:10px;padding:1.5rem 1.2rem;transition:border-color 0.2s,transform 0.2s}
+.feature-card:hover{border-color:#00ff88;transform:translateY(-2px)}
+.feature-card .icon{font-size:1.5rem;margin-bottom:0.5rem}
+.feature-card .title{color:#fff;font-weight:bold;font-size:0.9rem;margin-bottom:0.4rem}
+.feature-card .desc{color:#666;font-size:0.75rem;line-height:1.5}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid #1a1a1a;padding:1.2rem 0}
+.faq-item summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;color:#fff;font-weight:600;font-size:0.9rem}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';color:#555;font-size:1.2rem;font-weight:bold}
+.faq-item[open] summary::after{content:'−'}
+.faq-item .faq-answer{color:#888;font-size:0.85rem;line-height:1.7;padding-top:0.75rem}
+
+dialog::backdrop{background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)}
+dialog{animation:dialogIn 0.2s ease}
+@keyframes dialogIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.swipe-hint{text-align:center;color:#333;font-size:0.7rem;margin-top:0.8rem}
+@keyframes flowDot{0%{left:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:calc(100% - 6px);opacity:0}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sr-only:focus{position:fixed;top:0;left:0;width:auto;height:auto;padding:1rem 2rem;margin:0;overflow:visible;clip:auto;white-space:normal;background:#00ff88;color:#0a0a0a;z-index:10000;font-weight:bold;font-size:1rem}
+</style>
+<style>@media(max-width:700px){#profiles>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}}</style>
+</head>
+<body>
+<a href="#main" class="sr-only">Skip to content</a>
+<header role="banner">
+<a href="/zh/" style="position:fixed;top:1rem;right:1rem;z-index:999;padding:0.4rem 0.8rem;background:#111;border:1px solid #333;border-radius:6px;color:#888;font-size:0.75rem;text-decoration:none;font-family:inherit;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88';this.style.color='#00ff88'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">中文</a>
+</header>
+<main id="main" role="main">
+<div class="container">
+
+<div class="hero">
+<img src="assets/hero-banner.jpg" alt="KrillClaw — kawaii shrimp mascot with retro CRT aesthetic" style="width:100%;max-width:700px;border-radius:12px;margin:0 auto 1.5rem;display:block;box-shadow:0 0 60px #ff886620">
+<p class="tagline">The smallest AI agent runtime for edge devices.</p>
+<p style="color:#ff6600;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem">Patent Pending</p>
+<p class="size">49KB</p>
+<p style="color:#ff8833;font-size:1.3rem;margin-bottom:0.5rem;font-weight:600">full: ≤500KB</p>
+<p style="color:#888;margin-bottom:0.5rem">Zero dependencies · No OS required · Any LLM provider</p>
+<p style="color:#666;font-size:0.9rem;margin-top:0.5rem">Tested on 350+ edge devices. Written in Zig.</p>
+
+<div class="marquee-section" role="marquee" aria-label="Supported devices — over 350 tested hardware configurations">
+<div class="marquee-row scroll-left">
+<span class="marquee-tag">Smart Ring</span><span class="marquee-tag">ESP32-C3</span><span class="marquee-tag">Raspberry Pi</span><span class="marquee-tag">Arduino Nano</span><span class="marquee-tag">Steam Deck</span><span class="marquee-tag">Old Laptop</span><span class="marquee-tag">Smart Watch</span><span class="marquee-tag">USB Stick</span><span class="marquee-tag">Car ECU</span><span class="marquee-tag">Drone Brain</span><span class="marquee-tag">Weather Station</span><span class="marquee-tag">3D Printer</span><span class="marquee-tag">CNC Machine</span><span class="marquee-tag">Robot Arm</span><span class="marquee-tag">Smart Lock</span><span class="marquee-tag">Garage Door</span><span class="marquee-tag">Fish Tank</span><span class="marquee-tag">Plant Monitor</span><span class="marquee-tag">Soil Sensor</span><span class="marquee-tag">Baby Monitor</span><span class="marquee-tag">Doorbell Cam</span><span class="marquee-tag">Solar Panel</span><span class="marquee-tag">Wind Turbine</span><span class="marquee-tag">Satellite Modem</span><span class="marquee-tag">Test Rig</span><span class="marquee-tag">Lab Bench</span><span class="marquee-tag">Industrial Sensor</span><span class="marquee-tag">Nav Computer</span><span class="marquee-tag">Flight Controller</span><span class="marquee-tag">Traffic Light</span><span class="marquee-tag">Parking Meter</span><span class="marquee-tag">Vending Machine</span><span class="marquee-tag">POS System</span>
+<span aria-hidden="true" class="marquee-tag">Smart Ring</span><span aria-hidden="true" class="marquee-tag">ESP32-C3</span><span aria-hidden="true" class="marquee-tag">Raspberry Pi</span><span aria-hidden="true" class="marquee-tag">Arduino Nano</span><span aria-hidden="true" class="marquee-tag">Steam Deck</span><span aria-hidden="true" class="marquee-tag">Old Laptop</span><span aria-hidden="true" class="marquee-tag">Smart Watch</span><span aria-hidden="true" class="marquee-tag">USB Stick</span><span aria-hidden="true" class="marquee-tag">Car ECU</span><span aria-hidden="true" class="marquee-tag">Drone Brain</span><span aria-hidden="true" class="marquee-tag">Weather Station</span><span aria-hidden="true" class="marquee-tag">3D Printer</span><span aria-hidden="true" class="marquee-tag">CNC Machine</span><span aria-hidden="true" class="marquee-tag">Robot Arm</span><span aria-hidden="true" class="marquee-tag">Smart Lock</span><span aria-hidden="true" class="marquee-tag">Garage Door</span><span aria-hidden="true" class="marquee-tag">Fish Tank</span><span aria-hidden="true" class="marquee-tag">Plant Monitor</span><span aria-hidden="true" class="marquee-tag">Soil Sensor</span><span aria-hidden="true" class="marquee-tag">Baby Monitor</span><span aria-hidden="true" class="marquee-tag">Doorbell Cam</span><span aria-hidden="true" class="marquee-tag">Solar Panel</span><span aria-hidden="true" class="marquee-tag">Wind Turbine</span><span aria-hidden="true" class="marquee-tag">Satellite Modem</span><span aria-hidden="true" class="marquee-tag">Test Rig</span><span aria-hidden="true" class="marquee-tag">Lab Bench</span><span aria-hidden="true" class="marquee-tag">Industrial Sensor</span><span aria-hidden="true" class="marquee-tag">Nav Computer</span><span aria-hidden="true" class="marquee-tag">Flight Controller</span><span aria-hidden="true" class="marquee-tag">Traffic Light</span><span aria-hidden="true" class="marquee-tag">Parking Meter</span><span aria-hidden="true" class="marquee-tag">Vending Machine</span><span aria-hidden="true" class="marquee-tag">POS System</span>
+</div>
+<div class="marquee-row scroll-right" aria-hidden="true">
+<span class="marquee-tag">nRF5340 DK</span><span class="marquee-tag">Pi Pico</span><span class="marquee-tag">BeagleBone</span><span class="marquee-tag">Jetson Nano</span><span class="marquee-tag">Mining Rig</span><span class="marquee-tag">NAS Server</span><span class="marquee-tag">Edge Gateway</span><span class="marquee-tag">POS Terminal</span><span class="marquee-tag">Kiosk Display</span><span class="marquee-tag">Digital Sign</span><span class="marquee-tag">Jukebox</span><span class="marquee-tag">Pinball Machine</span><span class="marquee-tag">Arcade Cabinet</span><span class="marquee-tag">Slot Machine</span><span class="marquee-tag">Fitness Band</span><span class="marquee-tag">Heart Monitor</span><span class="marquee-tag">Medical Device</span><span class="marquee-tag">Wearable Tech</span><span class="marquee-tag">Health Monitor</span><span class="marquee-tag">Lab Equipment</span><span class="marquee-tag">Oscilloscope</span><span class="marquee-tag">Logic Analyzer</span><span class="marquee-tag">Power Meter</span><span class="marquee-tag">Smart Thermostat</span><span class="marquee-tag">HVAC System</span><span class="marquee-tag">Irrigation Hub</span><span class="marquee-tag">Greenhouse Bot</span><span class="marquee-tag">Beehive Sensor</span><span class="marquee-tag">Cattle Tracker</span><span class="marquee-tag">Pet Feeder</span><span class="marquee-tag">Litter Robot</span><span class="marquee-tag">Roomba Brain</span><span class="marquee-tag">Pool Monitor</span><span class="marquee-tag">Hot Tub</span>
+<span class="marquee-tag">nRF5340 DK</span><span class="marquee-tag">Pi Pico</span><span class="marquee-tag">BeagleBone</span><span class="marquee-tag">Jetson Nano</span><span class="marquee-tag">Mining Rig</span><span class="marquee-tag">NAS Server</span><span class="marquee-tag">Edge Gateway</span><span class="marquee-tag">POS Terminal</span><span class="marquee-tag">Kiosk Display</span><span class="marquee-tag">Digital Sign</span><span class="marquee-tag">Jukebox</span><span class="marquee-tag">Pinball Machine</span><span class="marquee-tag">Arcade Cabinet</span><span class="marquee-tag">Slot Machine</span><span class="marquee-tag">Fitness Band</span><span class="marquee-tag">Heart Monitor</span><span class="marquee-tag">Medical Device</span><span class="marquee-tag">Wearable Tech</span><span class="marquee-tag">Health Monitor</span><span class="marquee-tag">Lab Equipment</span><span class="marquee-tag">Oscilloscope</span><span class="marquee-tag">Logic Analyzer</span><span class="marquee-tag">Power Meter</span><span class="marquee-tag">Smart Thermostat</span><span class="marquee-tag">HVAC System</span><span class="marquee-tag">Irrigation Hub</span><span class="marquee-tag">Greenhouse Bot</span><span class="marquee-tag">Beehive Sensor</span><span class="marquee-tag">Cattle Tracker</span><span class="marquee-tag">Pet Feeder</span><span class="marquee-tag">Litter Robot</span><span class="marquee-tag">Roomba Brain</span><span class="marquee-tag">Pool Monitor</span><span class="marquee-tag">Hot Tub</span>
+</div>
+<div class="marquee-row scroll-left-slow" aria-hidden="true">
+<span class="marquee-tag">Colmi R02</span><span class="marquee-tag">RISC-V Board</span><span class="marquee-tag">Milk-V Duo</span><span class="marquee-tag">LilyGo Watch</span><span class="marquee-tag">Flipper Zero</span><span class="marquee-tag">Badge SAO</span><span class="marquee-tag">Conference Badge</span><span class="marquee-tag">LED Matrix</span><span class="marquee-tag">Laser Cutter</span><span class="marquee-tag">Sewing Machine</span><span class="marquee-tag">Espresso Maker</span><span class="marquee-tag">Smart Fridge</span><span class="marquee-tag">Wine Cellar</span><span class="marquee-tag">Sous Vide</span><span class="marquee-tag">Smoker Grill</span><span class="marquee-tag">Bread Oven</span><span class="marquee-tag">Ham Radio</span><span class="marquee-tag">SDR Receiver</span><span class="marquee-tag">LoRa Gateway</span><span class="marquee-tag">Mesh Node</span><span class="marquee-tag">Zigbee Hub</span><span class="marquee-tag">Thread Border</span><span class="marquee-tag">Matter Bridge</span><span class="marquee-tag">HomeKit Plug</span><span class="marquee-tag">EV Charger</span><span class="marquee-tag">Battery BMS</span><span class="marquee-tag">Motor Driver</span><span class="marquee-tag">Servo Board</span><span class="marquee-tag">Stepper Controller</span><span class="marquee-tag">Lidar Scanner</span><span class="marquee-tag">Depth Camera</span><span class="marquee-tag">Thermal Imager</span><span class="marquee-tag">Geiger Counter</span>
+<span class="marquee-tag">Colmi R02</span><span class="marquee-tag">RISC-V Board</span><span class="marquee-tag">Milk-V Duo</span><span class="marquee-tag">LilyGo Watch</span><span class="marquee-tag">Flipper Zero</span><span class="marquee-tag">Badge SAO</span><span class="marquee-tag">Conference Badge</span><span class="marquee-tag">LED Matrix</span><span class="marquee-tag">Laser Cutter</span><span class="marquee-tag">Sewing Machine</span><span class="marquee-tag">Espresso Maker</span><span class="marquee-tag">Smart Fridge</span><span class="marquee-tag">Wine Cellar</span><span class="marquee-tag">Sous Vide</span><span class="marquee-tag">Smoker Grill</span><span class="marquee-tag">Bread Oven</span><span class="marquee-tag">Ham Radio</span><span class="marquee-tag">SDR Receiver</span><span class="marquee-tag">LoRa Gateway</span><span class="marquee-tag">Mesh Node</span><span class="marquee-tag">Zigbee Hub</span><span class="marquee-tag">Thread Border</span><span class="marquee-tag">Matter Bridge</span><span class="marquee-tag">HomeKit Plug</span><span class="marquee-tag">EV Charger</span><span class="marquee-tag">Battery BMS</span><span class="marquee-tag">Motor Driver</span><span class="marquee-tag">Servo Board</span><span class="marquee-tag">Stepper Controller</span><span class="marquee-tag">Lidar Scanner</span><span class="marquee-tag">Depth Camera</span><span class="marquee-tag">Thermal Imager</span><span class="marquee-tag">Geiger Counter</span>
+</div>
+</div>
+
+<pre class="install">zig build -Doptimize=ReleaseSmall
+export ANTHROPIC_API_KEY=...
+./krillclaw "read the temperature and adjust the fan"</pre>
+
+
+<a href="#waitlist" class="cta" style="background:#ff6600;margin-top:1rem" onclick="document.getElementById('waitlist-dialog').showModal();return false">🦐 I Want One!</a>
+</div>
+
+<!-- Built Different -->
+<div class="section">
+<h2>Built Different</h2>
+<p style="color:#888;margin-bottom:1.5rem;font-size:0.85rem">What you get that others don't ship.</p>
+<div class="features-grid">
+<div class="feature-card">
+<div class="icon">🔐</div>
+<div class="title">Secure by Default</div>
+<div class="desc">Built-in authentication. Your agent only responds to you. No open endpoints, no shared API keys, no surprise bills.</div>
+</div>
+<div class="feature-card">
+<div class="icon">📡</div>
+<div class="title">Every Channel</div>
+<div class="desc">WhatsApp. Telegram. Discord. Signal. IRC. Your agent meets you where you already are — not where it's convenient for the developer.</div>
+</div>
+<div class="feature-card">
+<div class="icon">🧠</div>
+<div class="title">Real Memory</div>
+<div class="desc">Your agent writes its own memories, searches them semantically, and builds context over days, weeks, months. Not a 3-day sliding window.</div>
+</div>
+<div class="feature-card">
+<div class="icon">🧪</div>
+<div class="title">Tested &amp; Leak-Free</div>
+<div class="desc">40 tests, zero memory leaks, CI on every commit. Most embedded AI projects ship with zero tests. We ship with proof.</div>
+</div>
+
+
+
+
+
+<div class="feature-card">
+<div class="icon">🔌</div>
+<div class="title">Skills &amp; Plugins</div>
+<div class="desc">Extend your agent with community skills. GPIO control, browser automation, home integration — if you can imagine it, someone's building it.</div>
+</div>
+<div class="feature-card">
+<div class="icon">🌐</div>
+<div class="title">17+ LLM Providers</div>
+<div class="desc">Claude, GPT, Gemini, Llama, Qwen, Mistral, and more. Switch providers in one line. Never locked in.</div>
+</div>
+</div>
+</div>
+
+
+<!-- ═══ Deployment Profiles ═══ -->
+<div class="section" id="profiles">
+<div style="font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:#00ff88;margin-bottom:8px">Architecture</div>
+<h2>Two Profiles. <span style="color:#00ff88">Every Use Case.</span></h2>
+<p style="color:#888;margin-bottom:1.5rem;font-size:0.9rem">Choose the right build for your device.</p>
+<p style="color:#ffcc00;font-size:0.8rem;margin-bottom:3rem;padding:0.75rem 1rem;border:1px solid #ffcc0033;border-radius:8px;background:#ffcc0008">💡 <strong>Lite and Full are independent builds.</strong> Use either one alone, or combine them in a fleet. Full does not require Lite.</p>
+
+<!-- Architecture Diagram -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:4rem">
+<div style="background:#111;border:1px solid #222;border-radius:12px;padding:2rem 1.5rem;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;background:#00ff88"></div>
+<div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#00ff88;margin-bottom:4px">Profile: Lite</div>
+<div style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1.5rem">BLE / Serial Agent — 49 KB</div>
+<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:1rem 0">
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+<div style="width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#00ff8815;border:1px solid #00ff88;position:relative" aria-label="ESP32-C3 chip">
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="2" fill="#00ff8822" stroke="#00ff88" stroke-width="1"/><rect x="8" y="8" width="12" height="12" rx="1" fill="#00ff8844"/><text x="14" y="16" text-anchor="middle" fill="#00ff88" font-size="5" font-family="monospace">C3</text><rect x="1" y="8" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="1" y="13" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="1" y="18" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="24" y="8" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="24" y="13" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="24" y="18" width="3" height="2" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="8" y="1" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="13" y="1" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="18" y="1" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="8" y="24" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="13" y="24" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/><rect x="18" y="24" width="2" height="3" rx="0.5" fill="#00ff88" opacity="0.6"/></svg>
+</div>
+<div style="font-size:0.6rem;color:#888;text-align:center">ESP32-C3<br>$3</div>
+</div>
+<div style="position:relative;width:64px;height:2px;margin:0 4px;flex-shrink:0">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:1px;background:#00ff88;opacity:0.3"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#00ff88;box-shadow:0 0 6px #00ff88;animation:flowDot 1.8s ease-in-out infinite"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#00ff88;box-shadow:0 0 6px #00ff88;animation:flowDot 1.8s ease-in-out infinite 0.9s"></div>
+<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:0.55rem;color:#888;white-space:nowrap">BLE</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+<div style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:#ffffff11;border:1px solid #444">📱</div>
+<div style="font-size:0.6rem;color:#888;text-align:center">Phone / Gateway</div>
+</div>
+<div style="position:relative;width:64px;height:2px;margin:0 4px;flex-shrink:0">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:1px;background:#00ff88;opacity:0.3"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#00ff88;box-shadow:0 0 6px #00ff88;animation:flowDot 1.8s ease-in-out infinite 0.3s"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#00ff88;box-shadow:0 0 6px #00ff88;animation:flowDot 1.8s ease-in-out infinite 1.2s"></div>
+<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:0.55rem;color:#888;white-space:nowrap">WiFi</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+<div style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:#ff6b6b22;border:1px solid #ff6b6b">☁</div>
+<div style="font-size:0.6rem;color:#888;text-align:center">LLM API</div>
+</div>
+</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:12px;padding:2rem 1.5rem;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;background:#ff8833"></div>
+<div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#ff8833;margin-bottom:4px">Profile: Full</div>
+<div style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1.5rem">Full HTTP Agent — ≤500 KB</div>
+<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:1rem 0">
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+<div style="width:48px;height:48px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#ff883315;border:1px solid #ff8833;position:relative" aria-label="ESP32-S3 chip">
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="5" y="5" width="26" height="26" rx="2" fill="#ff883322" stroke="#ff8833" stroke-width="1"/><rect x="10" y="10" width="16" height="16" rx="1" fill="#ff883344"/><text x="18" y="20" text-anchor="middle" fill="#ff8833" font-size="6" font-family="monospace">S3</text><rect x="1" y="10" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="1" y="15" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="1" y="20" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="1" y="25" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="31" y="10" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="31" y="15" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="31" y="20" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="31" y="25" width="4" height="2" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="10" y="1" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="15" y="1" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="20" y="1" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="25" y="1" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="10" y="31" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="15" y="31" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="20" y="31" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/><rect x="25" y="31" width="2" height="4" rx="0.5" fill="#ff8833" opacity="0.6"/></svg>
+</div>
+<div style="font-size:0.6rem;color:#888;text-align:center">ESP32-S3<br>$5</div>
+</div>
+<div style="position:relative;width:140px;height:2px;margin:0 4px;flex-shrink:0">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:1px;background:#ff8833;opacity:0.3"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#ff8833;box-shadow:0 0 6px #ff8833;animation:flowDot 1.8s ease-in-out infinite"></div>
+<div style="position:absolute;width:6px;height:6px;border-radius:50%;top:-2px;background:#ff8833;box-shadow:0 0 6px #ff8833;animation:flowDot 1.8s ease-in-out infinite 0.9s"></div>
+<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:0.55rem;color:#888;white-space:nowrap">WiFi / TLS</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+<div style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:#ff6b6b22;border:1px solid #ff6b6b">☁</div>
+<div style="font-size:0.6rem;color:#888;text-align:center">LLM API</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Profile Cards -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:4rem">
+<div style="background:#111;border:1px solid #00ff8844;border-radius:12px;padding:2rem">
+<div style="font-size:3rem;font-weight:bold;color:#00ff88;margin-bottom:0.25rem">49KB</div>
+<div style="font-size:0.85rem;color:#00ff88;margin-bottom:1rem">BLE / Serial</div>
+<div style="color:#888;font-size:0.8rem;line-height:2">No WiFi needed · No API keys on device · Ultra-low power (~10mA) · $3 ESP32-C3</div>
+<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #1a1a1a;color:#666;font-size:0.75rem"><strong style="color:#00ff88">Best for:</strong> wearables, vehicles, body-worn, battery-powered, anything near a BLE gateway (phone, Pi, laptop)</div>
+</div>
+<div style="background:#111;border:1px solid #ff883344;border-radius:12px;padding:2rem">
+<div style="font-size:3rem;font-weight:bold;color:#ff8833;margin-bottom:0.25rem">≤500KB</div>
+<div style="font-size:0.85rem;color:#ff8833;margin-bottom:1rem">WiFi / HTTP / TLS</div>
+<div style="color:#888;font-size:0.8rem;line-height:2">Direct LLM access · Self-contained · Coordinates lite nodes · Always-on</div>
+<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #1a1a1a;color:#666;font-size:0.75rem"><strong style="color:#ff8833">Best for:</strong> autonomous sensors, greenhouses, factories, home automation, fleet coordination</div>
+</div>
+</div>
+
+<!-- Feature Matrix -->
+<h3 style="color:#fff;font-size:1.1rem;margin-bottom:1rem">Profile Comparison</h3>
+<div style="overflow-x:auto;margin-bottom:4rem">
+<table style="width:100%;border-collapse:collapse;font-size:0.8rem">
+<thead>
+<tr><th style="text-align:left;padding:12px 16px;border-bottom:2px solid #222;color:#888;font-weight:600;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase">Feature</th><th style="padding:12px 16px;border-bottom:2px solid #222;color:#00ff88;font-weight:600;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;text-align:center">Lite (49 KB)</th><th style="padding:12px 16px;border-bottom:2px solid #222;color:#ff8833;font-weight:600;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;text-align:center">Full (≤500 KB)</th></tr>
+</thead>
+<tbody>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Binary size</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">49 KB</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">≤500 KB</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Transport</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">BLE / Serial</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">WiFi / HTTP / TLS</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">ReAct agent loop</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Tool execution</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ local tools</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ full toolset</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Persistent memory</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ flash</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ flash + filesystem</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Config management</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">LLM API calls</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#ffaa00;text-align:center" title="Handled by a nearby BLE gateway — not a limitation">via BLE gateway ⚡</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ direct</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">TLS / HTTPS</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#ffaa00;text-align:center" title="BLE link is local — no TLS required">not needed ⚡</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">GPIO / sensors</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ direct</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">API key on device</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#ffaa00;text-align:center" title="Key stays on the BLE gateway — never on edge device">❌ secure! ⚡</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ required</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Power draw</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">~10 mA</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">~100 mA</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Min hardware</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">$3 ESP32-C3</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">$5 ESP32-S3 / Pi</td></tr>
+<tr><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#e0e0e0">Offline capable</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ local ops</td><td style="padding:10px 16px;border-bottom:1px solid #1a1a1a;color:#00ff88;text-align:center">✅ queues calls</td></tr>
+</tbody>
+</table>
+<p style="color:#555;font-size:0.7rem;margin-top:0.5rem">⚡ = by design, not a limitation</p>
+</div>
+
+<!-- Use Case Cards -->
+<h3 style="color:#fff;font-size:1.1rem;margin-bottom:1rem">Use Case → Profile</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:4rem">
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🚗 Car OBD-II</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#00ff8833;color:#00ff88;border:1px solid #00ff8844">LITE</span></div>
+<div style="font-size:0.7rem;color:#888">BLE to phone — no WiFi in the car needed</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🏋️ Exercise Bike</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#00ff8833;color:#00ff88;border:1px solid #00ff8844">LITE</span></div>
+<div style="font-size:0.7rem;color:#888">Streams metrics over BLE to gym app</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">💍 Smart Ring</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#00ff8833;color:#00ff88;border:1px solid #00ff8844">LITE</span></div>
+<div style="font-size:0.7rem;color:#888">Coin-cell power — every µA counts</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🧸 Toys</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#00ff8833;color:#00ff88;border:1px solid #00ff8844">LITE</span></div>
+<div style="font-size:0.7rem;color:#888">No API keys on device — gateway (phone, tablet, or Pi) handles the cloud</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🦾 Prosthetics</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#00ff8833;color:#00ff88;border:1px solid #00ff8844">LITE</span></div>
+<div style="font-size:0.7rem;color:#888">Ultra-low latency local tools, nearby gateway relays LLM</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🌱 Greenhouse</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#ff883322;color:#ff8833;border:1px solid #ff883344">FULL</span></div>
+<div style="font-size:0.7rem;color:#888">WiFi available — talks to LLM directly, no gateway needed</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🏠 Smart Fridge</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#ff883322;color:#ff8833;border:1px solid #ff883344">FULL</span></div>
+<div style="font-size:0.7rem;color:#888">Always on WiFi, full HTTP toolset</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🏭 CNC Machine</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#ffffff11;color:#fff;border:1px solid #333">BOTH</span></div>
+<div style="font-size:0.7rem;color:#888">Lite on spindle controller + Full node for job mgmt</div>
+</div>
+<div style="background:#111;border:1px solid #222;border-radius:10px;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem"><span style="color:#fff;font-weight:600;font-size:0.85rem">🚜 Fleet / Farm</span><span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 8px;border-radius:4px;background:#ffffff11;color:#fff;border:1px solid #333">BOTH</span></div>
+<div style="font-size:0.7rem;color:#888">Lite nodes on vehicles, Full at base station</div>
+</div>
+</div>
+
+<!-- Build Commands -->
+<h3 style="color:#fff;font-size:1.1rem;margin-bottom:1rem">Build Commands</h3>
+<div style="background:#0d0d0d;border:1px solid #222;border-radius:10px;overflow:hidden;margin-bottom:4rem">
+<div style="display:flex;align-items:center;gap:6px;padding:10px 16px;background:#141414;border-bottom:1px solid #1a1a1a">
+<span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+<span style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;display:inline-block"></span>
+<span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
+</div>
+<pre style="padding:20px;font-size:0.8rem;line-height:1.7;overflow-x:auto;margin:0"><span style="color:#888"># Lite: BLE/Serial agent (49KB)</span>
+<span style="color:#00ff88">zig build</span> <span style="color:#ff8833">-Dprofile=lite</span> <span style="color:#ff8833">-Doptimize=ReleaseSmall</span>
+
+<span style="color:#888"># Full: Full HTTP agent (≤500KB)</span>
+<span style="color:#00ff88">zig build</span> <span style="color:#ff8833">-Dprofile=full</span> <span style="color:#ff8833">-Doptimize=ReleaseSmall</span></pre>
+</div>
+
+<!-- BLE Bandwidth -->
+<div style="background:#111;border:1px solid #222;border-radius:12px;padding:2rem;max-width:600px;margin-bottom:2rem">
+<h3 style="color:#fff;font-size:1.1rem;margin-bottom:1rem">BLE Bandwidth vs LLM Token Stream</h3>
+<div style="margin-bottom:1rem">
+<div style="font-size:0.7rem;color:#888;margin-bottom:4px">LLM token stream — ~1 KB/sec</div>
+<div style="height:28px;background:#1a1a1a;border-radius:6px;overflow:hidden"><div style="height:100%;width:1.25%;min-width:70px;border-radius:6px;background:#ff6b6b;display:flex;align-items:center;padding-left:10px;font-size:0.7rem;font-weight:700;color:#fff;white-space:nowrap">1 KB/s</div></div>
+</div>
+<div style="margin-bottom:1.25rem">
+<div style="font-size:0.7rem;color:#888;margin-bottom:4px">BLE 5.0 throughput — ~80 KB/sec</div>
+<div style="height:28px;background:#1a1a1a;border-radius:6px;overflow:hidden"><div style="height:100%;width:100%;border-radius:6px;background:#00ff88;display:flex;align-items:center;padding-left:10px;font-size:0.7rem;font-weight:700;color:#000;white-space:nowrap">80 KB/s</div></div>
+</div>
+<p style="font-size:0.8rem;color:#e0e0e0;text-align:center">BLE has <strong style="color:#00ff88">80×</strong> more bandwidth than an LLM stream needs.<br><span style="color:#888;font-size:0.75rem">The bottleneck is always the AI, never the transport.</span></p>
+</div>
+
+</div>
+
+<div class="section">
+<h2><img src="assets/mascot-small.jpg" alt="KrillClaw shrimp mascot" class="mascot-inline">How it compares</h2>
+<p style="color:#888;margin-bottom:1rem;font-size:0.85rem">Embedded AI agent runtimes — a new category.</p>
+<table>
+<tr><th></th><th>KrillClaw™</th><th>MimiClaw</th><th>PicoClaw</th><th>OpenClaw</th></tr>
+<tr><td>Language</td><td class="highlight">Zig</td><td>C</td><td>Go</td><td>Node.js</td></tr>
+<tr><td>Binary size</td><td class="highlight">49 KB / ≤500 KB</td><td>~2 MB</td><td>~8 MB</td><td>~200 MB</td></tr>
+<tr><td>RAM usage</td><td class="highlight">2 MB</td><td>~512 KB</td><td>~10 MB</td><td>~200 MB</td></tr>
+<tr><td>Source</td><td class="highlight">~3,500 LOC</td><td>~7K LOC</td><td>?</td><td>~40K LOC</td></tr>
+<tr><td>Dependencies</td><td class="highlight">0</td><td>ESP-IDF</td><td>Go stdlib</td><td>~108 npm</td></tr>
+<tr><td>Target hardware</td><td class="highlight">$3 ESP32+</td><td>$5 ESP32-S3</td><td>$10 LicheeRV</td><td>Pi / VPS / Mac</td></tr>
+<tr><td>Needs OS?</td><td class="highlight">No</td><td class="highlight">No</td><td>Linux</td><td>Linux / macOS</td></tr>
+<tr><td>Memory safety</td><td class="highlight">Yes (Zig)</td><td>No (C)</td><td>Yes (Go GC)</td><td>Yes (JS)</td></tr>
+<tr><td>LLM providers</td><td class="highlight">Any compatible</td><td>Claude + OpenAI</td><td>?</td><td>Multi</td></tr>
+<tr><td>BLE transport</td><td class="highlight">Yes</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Security</td><td class="highlight">✅ Built-in auth</td><td>❌ None</td><td>✅ Sandboxed</td><td>✅ Full</td></tr>
+<tr><td>Channels</td><td class="highlight">8+</td><td>1</td><td>N/A</td><td>8+</td></tr>
+<tr><td>Memory write</td><td class="highlight">✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+<tr><td>Media handling</td><td class="highlight">✅ Photos, voice, files</td><td>❌ Dropped</td><td>?</td><td>✅</td></tr>
+<tr><td>Skills / plugins</td><td class="highlight">✅ ClawHub</td><td>❌ None</td><td>❌</td><td>✅</td></tr>
+<tr><td>CI / testing</td><td class="highlight">✅ 40 tests, 0 leaks</td><td>❌ Zero</td><td>?</td><td>✅</td></tr>
+<tr><td>License</td><td class="highlight">BSL 1.1 → Apache 2.0</td><td>MIT</td><td>MIT</td><td>MIT</td></tr>
+</table>
+<div style="margin-top:1.5rem;overflow:hidden;position:relative">
+<p style="color:#555;font-size:0.75rem;margin-bottom:0.5rem;text-align:center">Works with any OpenAI-compatible provider</p>
+<p style="color:#444;font-size:0.65rem;text-align:center;margin-top:0.5rem">Competitor data as of Feb 2026. Check their repos for latest.</p>
+<div style="display:flex;width:max-content;gap:1rem;animation:scrollProviders 30s linear infinite;padding:0.3rem 0">
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">OpenAI</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Anthropic</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Ollama</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Mistral</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Groq</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">DeepSeek</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">OpenRouter</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Azure</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">AWS Bedrock</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Google Vertex</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Cerebras</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Cohere</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">SiliconFlow</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Hugging Face</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">DeepInfra</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">LiteLLM</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">vLLM</span>
+<span aria-hidden="true" style="color:#444">·</span>
+<span aria-hidden="true" style="color:#666;font-size:0.8rem;white-space:nowrap">OpenAI</span>
+<span aria-hidden="true" style="color:#444">·</span>
+<span aria-hidden="true" style="color:#666;font-size:0.8rem;white-space:nowrap">Anthropic</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Ollama</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Mistral</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Groq</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">DeepSeek</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">OpenRouter</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Azure</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">AWS Bedrock</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Google Vertex</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Cerebras</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Cohere</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">SiliconFlow</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">Hugging Face</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">DeepInfra</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">LiteLLM</span>
+<span style="color:#444">·</span>
+<span style="color:#666;font-size:0.8rem;white-space:nowrap">vLLM</span>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>16 files. ~3,500 lines. The entire runtime.</h2>
+<p style="color:#888;margin-bottom:1.5rem">You can read the entire codebase in an hour.</p>
+<pre class="install" style="max-width:550px"><span style="color:#888"># Both profiles</span>
+agent.zig    — core loop (250 lines)
+json.zig     — hand-rolled JSON (500 lines)
+context.zig  — token management (225 lines)
+stream.zig   — SSE parser (344 lines)
+transport.zig — BLE/serial abstraction
+
+<span style="color:#00ff88"># Full only</span>
+api.zig      — multi-provider HTTP (329 lines)
+tools_coding.zig — 7 tools (280 lines)</pre>
+<p style="color:#888;margin-top:1rem">Works with any OpenAI-compatible LLM provider. Switch with a flag.</p>
+</div>
+
+<div class="section">
+<h2><img src="assets/mascot-small.jpg" alt="KrillClaw shrimp mascot" class="mascot-inline">What becomes possible</h2>
+<p style="color:#888;margin-bottom:2rem">When every device has an AI brain and WiFi, ordinary things become extraordinary.</p>
+
+<div style="display:grid;grid-template-columns:1fr;gap:2rem;max-width:800px">
+
+<details class="usecase-card" style="border-left:3px solid #00aaff">
+<summary>
+<div><span style="color:#00aaff;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏠 Smart Home</span><br><span style="color:#fff;font-size:1rem;font-weight:600">Your fridge manages your groceries</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">A $3 ESP32 inside your fridge watches what gets consumed. It notices you're low on oat milk, checks your Instacart history, and pings you on WhatsApp: <em style="color:#aaa">"You tried that new Greek yogurt last week but didn't reorder — want to go back to your usual Fage, or give it another shot?"</em> It learns your preferences over time. No app. No screen. Just a chip that pays attention.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #00aaff">
+<summary>
+<div><span style="color:#00aaff;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏠 Smart Home</span><br><span style="color:#fff;font-size:1rem;font-weight:600">A garage door that sees you coming</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">You're walking home with hands full of grocery bags. KrillClaw on your garage monitors the house vicinity via your security camera. It sees you approaching with your hands full, recognizes you, understands the situation, and opens the garage door as you walk up — so you don't have to awkwardly dig for the clicker.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #ff8833">
+<summary>
+<div><span style="color:#ff8833;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🌱 IoT &amp; Agriculture</span><br><span style="color:#fff;font-size:1rem;font-weight:600">A greenhouse that farms itself</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Soil moisture drops. Temperature spikes. A traditional sensor triggers a fixed rule. A KrillClaw node reads the sensors, checks the 5-day forecast, recognizes the tomatoes are in flowering stage (needs less water, more heat), and adjusts the irrigation schedule accordingly. It messages you a weekly report: <em style="color:#aaa">"Tomatoes on track for harvest in ~12 days. Reduced watering 15% — soil was retaining more than usual after Tuesday's rain."</em></p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #ff8833">
+<summary>
+<div><span style="color:#ff8833;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏭 Industrial</span><br><span style="color:#fff;font-size:1rem;font-weight:600">Factory equipment that explains itself</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">A CNC machine's vibration pattern changes subtly. The KrillClaw node on the motor controller notices, cross-references the maintenance log stored in flash, and messages the floor supervisor: <em style="color:#aaa">"Spindle vibration up 12% since Monday — similar to the pattern before the bearing replacement in October. Recommend inspection within 48 hours. Current job will finish fine."</em> Predictive maintenance without a $50K platform.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #00ff88">
+<summary>
+<div><span style="color:#00ff88;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🤖 Robotics</span><br><span style="color:#fff;font-size:1rem;font-weight:600">A prosthetic hand that downloads skills on demand</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">A research prosthetic with KrillClaw embedded. It reads context from sensors and a wrist camera, then downloads fine-motor skill profiles from the cloud in real time. Picking up chopsticks for the first time? It loads a precision-grip pattern. Learning to play piano? Finger independence profile, downloaded in seconds. A prosthetics research lab testing new grasp patterns across dozens of patients? Same hardware, infinite configurations — each hand adapts to its wearer.</p><p style="color:#444;font-size:0.7rem;font-style:italic;margin-top:0.5rem">This is where edge AI is heading. KrillClaw is the runtime that makes it possible.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #00ff88">
+<summary>
+<div><span style="color:#00ff88;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🤖 Robotics</span><br><span style="color:#fff;font-size:1rem;font-weight:600">A 3D printer that fixes its own failures</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Layer adhesion drops on hour 6 of a 10-hour print. KrillClaw reads the temperature sensor, checks the filament spool weight (running low = thinner feed), and adjusts the flow rate mid-print. It texts you: <em style="color:#aaa">"Print 80% done. Compensated for low spool — increased flow rate 5%. Should finish clean by 2am."</em> You wake up to a perfect part instead of spaghetti.</p></div>
+</details>
+
+</div>
+
+<p style="color:#555;font-size:0.8rem;margin-top:2rem;text-align:center">Every example runs on a $3-5 chip over WiFi. The intelligence lives in the cloud. The agency lives on the device.</p>
+</div>
+
+<div class="section">
+<h2>Retrofit anything. Future-proof everything.</h2>
+<p style="color:#888;margin-bottom:1rem">You already own incredible hardware. The electronics inside just never had a brain. A $3 KrillClaw chip and a WiFi connection brings the world's most capable AI models to any device — analyzing data, reacting in real time, taking initiative, running recurring actions. No replacement required.</p>
+<p style="color:#00ff88;font-size:0.9rem;margin-bottom:2rem">Upgrade the brain, not the machine.</p>
+
+<div style="display:grid;grid-template-columns:1fr;gap:1.5rem;max-width:800px">
+
+<details class="usecase-card" style="border-left:3px solid #ffcc00">
+<summary>
+<div><span style="color:#ffcc00;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🚗 Automotive</span><br><span style="color:#fff;font-size:1rem;font-weight:600">Your 2018 car becomes a 2026 car</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Your car's OBD-II port speaks data — but the car's own computer was frozen in time the day it shipped. Plug in a $3 ESP32 with KrillClaw. Now it reads engine codes, cross-references them with repair databases, monitors fuel efficiency trends, and texts you: <em style="color:#aaa">"Your fuel economy dropped 8% this month — likely the air filter based on mileage. $12 part, 5-minute swap. Want me to order one?"</em> A new car with these smarts costs $45K. This costs $3.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #ffcc00">
+<summary>
+<div><span style="color:#ffcc00;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏋️ Fitness</span><br><span style="color:#fff;font-size:1rem;font-weight:600">Your exercise bike gets a real coach</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Your exercise bike has sensors for cadence, resistance, and heart rate — but its software is whatever the manufacturer shipped. Clip a KrillClaw node onto it. Now it reads your real-time performance, compares it to your training history, and adjusts coaching in context: <em style="color:#aaa">"Your power output is down 15% from Tuesday — you might be under-recovered. Switching to an endurance zone ride instead of intervals today."</em> A new smart bike with AI coaching: $3,000+. Retrofitting yours: $3.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #ffcc00">
+<summary>
+<div><span style="color:#ffcc00;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏭 Industrial</span><br><span style="color:#fff;font-size:1rem;font-weight:600">A $50K CNC machine gets predictive maintenance for $3</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Your CNC machine cost $50K but its controller is from 2015. Industrial predictive maintenance platforms cost $20K/year. Wire a KrillClaw chip to the vibration sensor and spindle temperature probe. It builds a baseline, detects anomalies, correlates with the maintenance log in flash memory, and messages the floor supervisor before things break. <em style="color:#aaa">"Spindle bearing vibration trending up 12% since Monday — similar to the pattern before the October replacement. Recommend inspection within 48 hours."</em> New CNC with smart diagnostics: $80K. Retrofitting: $3.</p></div>
+</details>
+
+<details class="usecase-card" style="border-left:3px solid #ffcc00">
+<summary>
+<div><span style="color:#ffcc00;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">🏠 Home</span><br><span style="color:#fff;font-size:1rem;font-weight:600">Your "dumb" appliances become smart — for real</span></div>
+</summary>
+<div class="card-body"><p style="color:#888;font-size:0.9rem;line-height:1.7">Your washer, dryer, pool pump, HVAC, water heater — all have sensors and control interfaces. None of them talk to each other or think for themselves. A KrillClaw chip on each one, connected to your home WiFi, and suddenly your house has a nervous system. The HVAC knows the dryer is about to dump heat and pre-adjusts. The pool pump shifts to off-peak rates. The water heater pre-heats before your usual shower time. A "smart home" retrofit from a contractor: $5K-15K. Doing it yourself with KrillClaw: $20 in chips.</p></div>
+</details>
+
+</div>
+
+<p style="color:#555;font-size:0.8rem;margin-top:2rem;text-align:center">Every device you own is an upgrade away. Not a replacement away.</p>
+</div>
+
+<div class="section">
+<h2><img src="assets/mascot-small.jpg" alt="KrillClaw shrimp mascot" class="mascot-inline">Runs on a $3 chip</h2>
+<p style="color:#888;margin-bottom:1.5rem">WiFi, BLE, and serial built in. Connects to any LLM over the air.</p>
+
+<div class="carousel-container">
+<div class="pill-switcher">
+<div class="pill-track">
+<button class="pill-btn active" data-tab="0">Dev Boards</button>
+<button class="pill-btn" data-tab="1">IoT</button>
+<button class="pill-btn" data-tab="2">Robotics</button>
+</div>
+</div>
+
+<div class="carousel-viewport">
+<div class="carousel-track">
+
+<div class="carousel-column active" data-column="devboards">
+<div class="hw-card-v2" style="--i:0"><div class="price">$3</div><div class="name">ESP32-C3</div><div class="spec">RISC-V, BLE 5.0</div><div class="profile-badge">coding</div></div>
+<div class="hw-card-v2" style="--i:1"><div class="price">$6</div><div class="name">Raspberry Pi Pico</div><div class="spec">RP2040, Serial</div><div class="profile-badge">coding</div></div>
+<div class="hw-card-v2" style="--i:2"><div class="price">$8</div><div class="name">Milk-V Duo</div><div class="spec">RISC-V, Linux</div><div class="profile-badge">coding</div></div>
+<div class="hw-card-v2" style="--i:3"><div class="price">$20</div><div class="name">Colmi R02 Ring</div><div class="spec">BLE, target platform</div><div class="profile-badge">coding</div></div>
+<div class="hw-card-v2" style="--i:4"><div class="price">$50</div><div class="name">nRF5340 DK</div><div class="spec">BLE 5.3, dual-core</div><div class="profile-badge">coding</div></div>
+<div class="hw-card-v2" style="--i:5"><div class="price">$15</div><div class="name">Flipper Zero</div><div class="spec">Sub-GHz, NFC, BLE</div><div class="profile-badge">coding</div></div>
+</div>
+
+<div class="carousel-column" data-column="iot">
+<div class="hw-card-v2" style="--i:0"><div class="price">$3</div><div class="name">ESP32-C3</div><div class="spec">WiFi + BLE sensor node</div><div class="profile-badge">iot</div></div>
+<div class="hw-card-v2" style="--i:1"><div class="price">$5</div><div class="name">ESP8266</div><div class="spec">WiFi, MQTT native</div><div class="profile-badge">iot</div></div>
+<div class="hw-card-v2" style="--i:2"><div class="price">$12</div><div class="name">LoRa Node</div><div class="spec">Long range mesh</div><div class="profile-badge">iot</div></div>
+<div class="hw-card-v2" style="--i:3"><div class="price">$8</div><div class="name">Zigbee Coordinator</div><div class="spec">Thread / Matter bridge</div><div class="profile-badge">iot</div></div>
+<div class="hw-card-v2" style="--i:4"><div class="price">$25</div><div class="name">Smart Thermostat</div><div class="spec">Temp + humidity + relay</div><div class="profile-badge">iot</div></div>
+<div class="hw-card-v2" style="--i:5"><div class="price">$15</div><div class="name">Soil Sensor Node</div><div class="spec">Moisture, pH, NPK</div><div class="profile-badge">iot</div></div>
+</div>
+
+<div class="carousel-column" data-column="robotics">
+<div class="hw-card-v2" style="--i:0"><div class="price">$6</div><div class="name">Pi Pico + Motor</div><div class="spec">Servo control, PWM</div><div class="profile-badge">robotics</div></div>
+<div class="hw-card-v2" style="--i:1"><div class="price">$35</div><div class="name">Jetson Nano</div><div class="spec">GPU, vision pipeline</div><div class="profile-badge">robotics</div></div>
+<div class="hw-card-v2" style="--i:2"><div class="price">$50</div><div class="name">nRF5340 DK</div><div class="spec">Real-time motor ctrl</div><div class="profile-badge">robotics</div></div>
+<div class="hw-card-v2" style="--i:3"><div class="price">$20</div><div class="name">Stepper Board</div><div class="spec">4-axis CNC / 3D printer</div><div class="profile-badge">robotics</div></div>
+<div class="hw-card-v2" style="--i:4"><div class="price">$45</div><div class="name">Lidar Module</div><div class="spec">360° SLAM mapping</div><div class="profile-badge">robotics</div></div>
+<div class="hw-card-v2" style="--i:5"><div class="price">$30</div><div class="name">Robot Arm Kit</div><div class="spec">6-DOF, serial control</div><div class="profile-badge">robotics</div></div>
+</div>
+
+</div>
+</div>
+<p class="swipe-hint">← swipe to explore →</p>
+</div>
+</div>
+
+<div class="section" id="waitlist-section" style="text-align:center;padding:3rem 0">
+<h2>🦐 I Want One!</h2>
+<p style="color:#888;margin-bottom:1.5rem">Sign up to get pre-flashed KrillClaw™ devices.</p>
+<button onclick="document.getElementById('waitlist-dialog').showModal()" style="padding:1rem 2.5rem;background:#00ff88;color:#0a0a0a;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-family:inherit;font-size:1.1rem">I Want One!</button>
+<p style="color:#444;font-size:0.7rem;margin-top:1rem">No spam. Just a ping when hardware ships.</p>
+</div>
+
+<dialog id="waitlist-dialog" style="background:#111;color:#e0e0e0;border:1px solid #333;border-radius:16px;padding:0;max-width:480px;width:90%;font-family:'SF Mono','Fira Code',monospace">
+<div style="padding:2rem">
+
+<!-- Step 1: Use case selection -->
+<div id="wl-step1">
+<h3 style="color:#00ff88;margin-bottom:0.5rem;font-size:1.1rem">What do you want to build?</h3>
+<p style="color:#888;font-size:0.8rem;margin-bottom:1.5rem">Pick what excites you most. Helps us prioritize what ships first.</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem" id="wl-options">
+<label style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#222'">
+<input type="radio" name="usecase" value="tinker" style="accent-color:#00ff88;width:16px;height:16px">
+<span style="font-size:0.85rem">🔧 I want to tinker and see what's possible</span>
+</label>
+<label style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#222'">
+<input type="radio" name="usecase" value="kids" style="accent-color:#00ff88;width:16px;height:16px">
+<span style="font-size:0.85rem">👨‍👧 I want to teach my kid how to add AI to stuff at home</span>
+</label>
+<label style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#222'">
+<input type="radio" name="usecase" value="retrofit" style="accent-color:#00ff88;width:16px;height:16px">
+<span style="font-size:0.85rem">🔄 I want to future-proof my existing hardware</span>
+</label>
+<label style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#222'">
+<input type="radio" name="usecase" value="fleet" style="accent-color:#00ff88;width:16px;height:16px">
+<span style="font-size:0.85rem">🏭 I want to build a massive fleet of AI agents on cheap hardware</span>
+</label>
+<label style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#00ff88'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#222'">
+<input type="radio" name="usecase" value="other" style="accent-color:#00ff88;width:16px;height:16px">
+<span style="font-size:0.85rem">✨ Something else entirely</span>
+</label>
+</div>
+<button id="wl-next" onclick="wlNext()" disabled style="margin-top:1.5rem;width:100%;padding:0.75rem;background:#333;color:#555;border:none;border-radius:8px;font-weight:bold;cursor:not-allowed;font-family:inherit;font-size:0.9rem;transition:all 0.2s">Select an option to continue</button>
+</div>
+
+<!-- Step 2: Email -->
+<div id="wl-step2" style="display:none">
+<h3 style="color:#00ff88;margin-bottom:0.5rem;font-size:1.1rem">Almost there!</h3>
+<p style="color:#888;font-size:0.8rem;margin-bottom:1.5rem">Drop your email and we'll ping you when devices are ready.</p>
+<input type="email" id="wl-email" placeholder="your@email.com" required style="width:100%;padding:0.75rem 1rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:#fff;font-family:inherit;font-size:0.9rem;margin-bottom:1rem">
+<input type="text" id="wl-website" name="website" style="position:absolute;left:-9999px;opacity:0;height:0" tabindex="-1" autocomplete="off">
+<button id="wl-submit" onclick="wlSubmit()" style="width:100%;padding:0.75rem;background:#00ff88;color:#0a0a0a;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-family:inherit;font-size:0.9rem">Sign me up 🦐</button>
+<p style="color:#444;font-size:0.7rem;margin-top:0.75rem;text-align:center">We'll send a verification link. No spam, ever.</p>
+</div>
+
+<!-- Step 3: Confirmation -->
+<div id="wl-step3" style="display:none;text-align:center;padding:1rem 0">
+<p style="font-size:2rem;margin-bottom:0.75rem">🦐</p>
+<h3 style="color:#00ff88;margin-bottom:0.5rem;font-size:1.1rem">You're on the list!</h3>
+<p style="color:#888;font-size:0.85rem">We'll ping <strong id="wl-email-display" style="color:#fff"></strong> when hardware is ready to ship.</p>
+<button onclick="document.getElementById('waitlist-dialog').close()" style="margin-top:1.5rem;padding:0.5rem 1.5rem;background:transparent;border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-family:inherit;font-size:0.85rem">Close</button>
+</div>
+
+</div>
+</dialog>
+
+<div class="section" style="text-align:center">
+<h2>Get started</h2>
+<pre class="install" style="text-align:left"># Coming soon — join the waitlist for early access
+git clone https://github.com/krillclaw/KrillClaw
+cd KrillClaw
+zig build -Doptimize=ReleaseSmall
+./zig-out/bin/krillclaw "monitor sensors and alert on anomalies"</pre>
+<p style="margin-top:2rem">
+<a href="#waitlist" class="cta" style="background:#ff6600" onclick="document.getElementById('waitlist-dialog').showModal();return false">🦐 I Want One!</a>
+
+</p>
+</div>
+
+<!-- FAQ -->
+<div class="section">
+<h2>FAQ</h2>
+<details class="faq-item">
+<summary>Does it need WiFi?</summary>
+<div class="faq-answer"><strong>Lite (49KB):</strong> No. Connects via BLE or serial to a nearby gateway — your phone, a Raspberry Pi, a laptop, or any BLE-capable device with internet. The gateway handles LLM API calls. Your device never needs WiFi credentials or API keys.<br><strong>Full (≤500KB):</strong> Yes. Connects directly to LLM APIs over WiFi/HTTP. Self-contained, no phone needed.</div>
+</details>
+<details class="faq-item">
+<summary>What's the difference between Lite and Full?</summary>
+<div class="faq-answer"><strong>Lite</strong> is a 49KB BLE/serial agent that runs on a $3 chip — sensors, actuators, local logic, ReAct reasoning. It talks to a nearby BLE gateway (phone, Pi, laptop) for LLM calls. No WiFi, no API keys on device, ultra-low power (~10mA).<br><strong>Full</strong> is a ≤500KB full agent with built-in HTTP/TLS. Runs on ESP32-S3, Raspberry Pi, or any Linux board. Talks directly to any LLM provider. Can also coordinate multiple lite nodes.</div>
+</details>
+<details class="faq-item">
+<summary>How much does the API cost?</summary>
+<div class="faq-answer">Typical usage: $0.50–2/month. You bring your own API key (on the hub or phone) and control the budget. KrillClaw itself is free and open source.</div>
+</details>
+<details class="faq-item">
+<summary>What happens when connectivity drops?</summary>
+<div class="faq-answer"><strong>Lite:</strong> Continues local operations (sensor reads, GPIO, scheduled tasks). Queues messages and syncs when BLE reconnects.<br><strong>Full:</strong> Queues LLM calls, retries with exponential backoff, resumes seamlessly when WiFi returns. Local operations are uninterrupted.</div>
+</details>
+<details class="faq-item">
+<summary>Can I use it without an ESP32?</summary>
+<div class="faq-answer">Yes — the full profile runs on any Linux ARM/RISC-V board, Raspberry Pi, routers, anything with 2MB RAM. ESP32 is the smallest target, not the only one.</div>
+</details>
+<details class="faq-item">
+<summary>Is it really 49KB?</summary>
+<div class="faq-answer">The lite profile is 49KB — BLE/serial transport, no HTTP stack, no TLS. That's the real binary for real embedded use. The full profile is ≤500KB because it includes HTTP/TLS for direct LLM API calls. Both are smaller than any competitor.</div>
+</details>
+<details class="faq-item">
+<summary>How does BLE pairing work?</summary>
+<div class="faq-answer">
+<strong>Automatic discovery:</strong> KrillClaw Lite devices advertise automatically on boot — no pairing button needed.<br>
+<strong>One-tap connect:</strong> The KrillClaw Bridge app (phone or desktop) discovers nearby agents and connects in one tap.<br>
+<strong>Secure bonding:</strong> Only authorized devices can connect — secure BLE bonding prevents unauthorized access.<br>
+<strong>Disconnect:</strong> Forget the device in your BLE settings to unpair.<br><br>
+<span style="color:#ffcc00;font-size:0.8rem">⚠️ The KrillClaw Bridge app is currently in development. Early access coming soon — join the waitlist to be first in line.</span>
+</div>
+</details>
+<details class="faq-item">
+<summary>Which profile should I use?</summary>
+<div class="faq-answer"><strong>Use Lite</strong> when: your device is near a BLE gateway (phone, Pi, laptop), you want the smallest binary, you don't want API keys on the device, or you're optimizing for power.<br><strong>Use Full</strong> when: your device needs to work autonomously without a nearby BLE gateway, or it's coordinating other lite nodes.</div>
+</details>
+</div>
+
+</div>
+</main>
+
+<footer role="contentinfo">
+<img src="assets/mascot-small.jpg" alt="KrillClaw shrimp mascot" class="mascot-footer">Built by <a href="https://accelerando.ai">Accelerando AI</a> · BSL 1.1 (→ Apache 2.0) · Patent Pending<br style="margin-top:0.5rem"><a href="/privacy" style="color:#555">Privacy</a> · <a href="/terms" style="color:#555">Terms</a> · <a href="/press" style="color:#555">Press</a> &middot; <a href="/license" style="color:#555">License</a> · <a href="/cdn-cgi/l/email-protection#fc9499909093bc9d9f9f9990998e9d929893d29d95" style="color:#555"><span class="__cf_email__" data-cfemail="ee868b828281ae8f8d8d8b828b9c8f808a81c08f87">[email&#160;protected]</span></a>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "KrillClaw™",
+  "description": "KrillClaw™ — the smallest AI agent runtime for edge devices. 49KB binary, zero dependencies, written in Zig. Runs on a $3 ESP32.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux, macOS, Embedded",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "programmingLanguage": "Zig",
+  
+  "license": "https://mariadb.com/bsl11/",
+  "url": "https://krillclaw.com",
+  "author": {
+    "@type": "Organization",
+    "name": "Accelerando AI",
+    "url": "https://accelerando.ai"
+  }
+}
+</script>
+
+<script>
+(function(){
+  const pills = document.querySelectorAll('.pill-btn');
+  const track = document.querySelector('.carousel-track');
+  const columns = document.querySelectorAll('.carousel-column');
+  const viewport = document.querySelector('.carousel-viewport');
+  let current = 0;
+
+  function goTo(index) {
+    current = index;
+    track.style.transform = 'translateX(-' + (index * 100) + '%)';
+    pills.forEach(p => p.classList.remove('active'));
+    pills[index].classList.add('active');
+    columns.forEach(c => {
+      c.classList.remove('active');
+      c.querySelectorAll('.hw-card-v2').forEach(function(card) {
+        card.style.animation = 'none';
+        card.offsetHeight;
+        card.style.animation = '';
+      });
+    });
+    columns[index].classList.add('active');
+  }
+
+  pills.forEach(function(pill, i) {
+    pill.addEventListener('click', function() { goTo(i); });
+  });
+
+  var startX = 0, isDragging = false;
+  viewport.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+    clearInterval(autoTimer);
+  }, {passive: true});
+  viewport.addEventListener('touchend', function(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 50) {
+      if (dx < 0 && current < columns.length - 1) goTo(current + 1);
+      else if (dx > 0 && current > 0) goTo(current - 1);
+    }
+  }, {passive: true});
+
+  var autoTimer = setInterval(function() { goTo((current + 1) % columns.length); }, 5000);
+  document.querySelector('.carousel-container').addEventListener('click', function() { clearInterval(autoTimer); }, {once: true});
+})();
+</script>
+
+<script>
+(function(){
+  var radios = document.querySelectorAll('input[name="usecase"]');
+  var nextBtn = document.getElementById('wl-next');
+  var labels = document.querySelectorAll('#wl-options label');
+  
+  radios.forEach(function(r){
+    r.addEventListener('change', function(){
+      nextBtn.disabled = false;
+      nextBtn.style.background = '#00ff88';
+      nextBtn.style.color = '#0a0a0a';
+      nextBtn.style.cursor = 'pointer';
+      nextBtn.textContent = 'Continue →';
+      labels.forEach(function(l){ l.style.borderColor = '#222'; });
+      r.closest('label').style.borderColor = '#00ff88';
+    });
+  });
+  
+  var dialog = document.getElementById('waitlist-dialog');
+  dialog.addEventListener('click', function(e){
+    if(e.target === dialog) dialog.close();
+  });
+  
+  dialog.addEventListener('close', function(){
+    document.getElementById('wl-step1').style.display = '';
+    document.getElementById('wl-step2').style.display = 'none';
+    document.getElementById('wl-step3').style.display = 'none';
+    radios.forEach(function(r){ r.checked = false; });
+    labels.forEach(function(l){ l.style.borderColor = '#222'; });
+    nextBtn.disabled = true;
+    nextBtn.style.background = '#333';
+    nextBtn.style.color = '#555';
+    nextBtn.style.cursor = 'not-allowed';
+    nextBtn.textContent = 'Select an option to continue';
+    document.getElementById('wl-email').value = '';
+  });
+})();
+
+function wlNext(){
+  document.getElementById('wl-step1').style.display = 'none';
+  document.getElementById('wl-step2').style.display = '';
+  document.getElementById('wl-email').focus();
+}
+
+function wlSubmit(){
+  var email = document.getElementById('wl-email').value;
+  if(!email || !email.includes('@')) return;
+  var honeypot = document.getElementById('wl-website').value;
+  var usecase = document.querySelector('input[name="usecase"]:checked').value;
+  var btn = document.getElementById('wl-submit');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbw6kTtoJXw4WohgIlOCfXSu0HIUYdNqaIfjHb0zIzW9--f3y5BVknrIu02xNLV0DpOL/exec';
+  fetch(ENDPOINT, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({
+      email: email,
+      source: 'krillclaw.com',
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      useCase: usecase,
+      website: honeypot
+    })
+  }).then(function(){
+    document.getElementById('wl-email-display').textContent = email;
+    document.getElementById('wl-step2').style.display = 'none';
+    document.getElementById('wl-step3').style.display = '';
+  }).catch(function(){
+    document.getElementById('wl-email-display').textContent = email;
+    document.getElementById('wl-step2').style.display = 'none';
+    document.getElementById('wl-step3').style.display = '';
+  });
+}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Does KrillClaw need WiFi?","acceptedAnswer":{"@type":"Answer","text":"Lite (49KB): No. Connects via BLE or serial to a nearby gateway. Full (≤500KB): Yes, connects directly to LLM APIs over WiFi/HTTP."}},
+{"@type":"Question","name":"What is the difference between Lite and Full?","acceptedAnswer":{"@type":"Answer","text":"Lite is a 49KB BLE/serial agent for ultra-constrained devices. Full is a ≤500KB agent with built-in HTTP/TLS for autonomous operation."}},
+{"@type":"Question","name":"How much does the API cost?","acceptedAnswer":{"@type":"Answer","text":"Typical usage: zsh.50–2/month. You bring your own API key and control the budget. KrillClaw itself is free."}},
+{"@type":"Question","name":"Is it really 49KB?","acceptedAnswer":{"@type":"Answer","text":"The lite profile is 49KB — BLE/serial transport, no HTTP stack, no TLS. The full profile is ≤500KB with HTTP/TLS. Both are smaller than any competitor."}}
+]}
+</script>
+</body>
+</html>
