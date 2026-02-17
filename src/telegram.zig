@@ -31,7 +31,7 @@ pub fn run(allocator: std.mem.Allocator, base_config: types.Config) !void {
     while (true) {
         var updates = fetchUpdates(allocator, &http_client, cfg, offset) catch |err| {
             try stdout.print("telegram: getUpdates failed: {}\n", .{err});
-            std.time.sleep(1 * std.time.ns_per_s);
+            std.Thread.sleep(1 * std.time.ns_per_s);
             continue;
         };
         defer freeUpdates(allocator, &updates);
