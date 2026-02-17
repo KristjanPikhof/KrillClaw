@@ -76,9 +76,6 @@ fn isPathAllowed(path: []const u8) bool {
         const parent_canon = std.fs.cwd().realpathAlloc(std.heap.page_allocator, dirname) catch return false;
         defer std.heap.page_allocator.free(parent_canon);
 
-        // Check if parent is allowed
-        if (!isCanonicalPathAllowed(parent_canon)) return false;
-
         // CRITICAL: Reconstruct full path and validate it would be under allowed root
         // This prevents attacks like "allowed_dir/../../../etc/passwd"
         const reconstructed = std.fs.path.join(std.heap.page_allocator, &.{ parent_canon, basename }) catch return false;
@@ -95,12 +92,15 @@ fn isPathAllowed(path: []const u8) bool {
 /// Check if a canonical (resolved) path is allowed
 fn isCanonicalPathAllowed(canonical_path: []const u8) bool {
     if (build_options.sandbox) {
-        // Sandbox: only /tmp/yoctoclaw-sandbox
-        return std.mem.startsWith(u8, canonical_path, "/tmp/yoctoclaw-sandbox");
+        // Sandbox: only /tmp/yoctoclaw-sandbox (handle macOS /private/tmp symlink)
+        return std.mem.startsWith(u8, canonical_path, "/tmp/yoctoclaw-sandbox") or
+            std.mem.startsWith(u8, canonical_path, "/private/tmp/yoctoclaw-sandbox");
     }
 
     // Non-sandbox: allow /tmp/yoctoclaw-* (least privilege) or paths under cwd
+    // Handle macOS where /tmp -> /private/tmp
     if (std.mem.startsWith(u8, canonical_path, "/tmp/yoctoclaw")) return true;
+    if (std.mem.startsWith(u8, canonical_path, "/private/tmp/yoctoclaw")) return true;
 
     const cwd_real = std.fs.cwd().realpathAlloc(std.heap.page_allocator, ".") catch return false;
     defer std.heap.page_allocator.free(cwd_real);

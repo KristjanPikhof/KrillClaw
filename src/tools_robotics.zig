@@ -113,7 +113,7 @@ fn executeRobotCmd(allocator: std.mem.Allocator, input: []const u8) ToolResult {
 
     // Build bridge JSON safely with proper escaping
     var buf: std.ArrayList(u8) = .{};
-    const w = buf.writer();
+    const w = buf.writer(allocator);
     w.writeAll("{\"action\":\"robot_cmd\",\"type\":\"") catch return .{ .output = "JSON build error", .is_error = true };
     json.writeEscaped(w, cmd_type) catch return .{ .output = "JSON build error", .is_error = true };
     w.writeAll("\",\"params\":") catch return .{ .output = "JSON build error", .is_error = true };

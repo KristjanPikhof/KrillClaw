@@ -75,7 +75,7 @@ pub fn execute(allocator: std.mem.Allocator, tool: types.ToolUse) ToolResult {
             return .{ .output = "Missing 'payload' parameter", .is_error = true };
         // Build JSON safely with proper escaping
         var buf: std.ArrayList(u8) = .{};
-        const w = buf.writer();
+        const w = buf.writer(allocator);
         w.writeAll("{\"action\":\"mqtt_publish\",\"topic\":\"") catch return .{ .output = "JSON build error", .is_error = true };
         json.writeEscaped(w, topic) catch return .{ .output = "JSON build error", .is_error = true };
         w.writeAll("\",\"payload\":\"") catch return .{ .output = "JSON build error", .is_error = true };
@@ -91,7 +91,7 @@ pub fn execute(allocator: std.mem.Allocator, tool: types.ToolUse) ToolResult {
         const timeout = json.extractInt(tool.input_raw, "timeout_ms") orelse 5000;
         // Build JSON safely with proper escaping
         var buf: std.ArrayList(u8) = .{};
-        const w = buf.writer();
+        const w = buf.writer(allocator);
         w.writeAll("{\"action\":\"mqtt_subscribe\",\"topic\":\"") catch return .{ .output = "JSON build error", .is_error = true };
         json.writeEscaped(w, topic) catch return .{ .output = "JSON build error", .is_error = true };
         w.print("\",\"timeout_ms\":{d}}}", .{timeout}) catch return .{ .output = "JSON build error", .is_error = true };
@@ -107,7 +107,7 @@ pub fn execute(allocator: std.mem.Allocator, tool: types.ToolUse) ToolResult {
         const body = json.extractString(tool.input_raw, "body") orelse "";
         // Build JSON safely with proper escaping
         var buf: std.ArrayList(u8) = .{};
-        const w = buf.writer();
+        const w = buf.writer(allocator);
         w.writeAll("{\"action\":\"http_request\",\"method\":\"") catch return .{ .output = "JSON build error", .is_error = true };
         json.writeEscaped(w, method) catch return .{ .output = "JSON build error", .is_error = true };
         w.writeAll("\",\"url\":\"") catch return .{ .output = "JSON build error", .is_error = true };
@@ -172,7 +172,7 @@ fn executeKvSet(allocator: std.mem.Allocator, input: []const u8) ToolResult {
 /// Device info — pure Zig, no bridge needed
 fn executeDeviceInfo(allocator: std.mem.Allocator) ToolResult {
     var info: std.ArrayList(u8) = .{};
-    const w = info.writer();
+    const w = info.writer(allocator);
 
     // Hostname
     w.writeAll("{\"hostname\":\"") catch {};

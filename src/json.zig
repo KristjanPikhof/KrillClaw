@@ -300,7 +300,7 @@ pub fn unescape(allocator: std.mem.Allocator, s: []const u8) ![]const u8 {
 // Helpers
 // ============================================================
 
-fn writeEscaped(writer: anytype, s: []const u8) !void {
+pub fn writeEscaped(writer: anytype, s: []const u8) !void {
     for (s) |c| {
         switch (c) {
             '"' => try writer.writeAll("\\\""),

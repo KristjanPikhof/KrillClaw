@@ -1,8 +1,8 @@
-# YoctoClaw
+# KrillClaw
 
 **The world's smallest coding agent.**
 
-YoctoClaw is a fully autonomous AI coding agent written in Zig. Zero dependencies. One binary. Connects to Claude, OpenAI, or Ollama. Executes tools. Loops until done. Ships under 200KB.
+KrillClaw is a fully autonomous AI coding agent written in Zig. Zero dependencies. One binary. Connects to Claude, OpenAI, or Ollama. Executes tools. Loops until done. Ships under 200KB.
 
 ```
  __   __        _         ___  _
@@ -13,11 +13,11 @@ YoctoClaw is a fully autonomous AI coding agent written in Zig. Zero dependencie
 
 ## Why?
 
-Every coding agent is a 500MB Electron app or a 50MB Node.js bundle. The actual logic — "call LLM, execute tools, loop" — is ~3,500 LOC (including tests) of Zig and a 180KB binary. YoctoClaw proves it.
+Every coding agent is a 500MB Electron app or a 50MB Node.js bundle. The actual logic — "call LLM, execute tools, loop" — is ~3,500 LOC (including tests) of Zig and a 180KB binary. KrillClaw proves it.
 
 ## Size
 
-| | YoctoClaw | Claude Code | Cursor | Aider | YoctoClaw Go |
+| | KrillClaw | Claude Code | Cursor | Aider | KrillClaw Go |
 |---|---------|-------------|--------|-------|------------|
 | **Binary** | **~150-180 KB** | ~50 MB | ~500 MB | ~50 MB | ~8 MB |
 | **RAM** | **~2 MB** | ~200 MB | ~1 GB | ~150 MB | ~10 MB |
@@ -36,30 +36,30 @@ Every coding agent is a 500MB Electron app or a 50MB Node.js bundle. The actual 
 # Install Zig 0.13+ from https://ziglang.org/download/
 
 # Build (release binary, stripped)
-cd yoctoclaw
+cd krillclaw
 zig build -Doptimize=ReleaseSmall
 
 # Set API key
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # Run interactively
-./zig-out/bin/yoctoclaw
+./zig-out/bin/krillclaw
 
 # One-shot
-./zig-out/bin/yoctoclaw "create a REST API in Go with user auth"
+./zig-out/bin/krillclaw "create a REST API in Go with user auth"
 
 # Use OpenAI
 export OPENAI_API_KEY=sk-...
-./zig-out/bin/yoctoclaw --provider openai -m gpt-4o "fix the tests"
+./zig-out/bin/krillclaw --provider openai -m gpt-4o "fix the tests"
 
 # Use local Ollama
-./zig-out/bin/yoctoclaw --provider ollama -m llama3 "explain this code"
+./zig-out/bin/krillclaw --provider ollama -m llama3 "explain this code"
 ```
 
 
 ## Profiles
 
-YoctoClaw supports compile-time profiles that select different tool sets for different use cases. Only the selected profile's code is compiled into the binary — zero runtime overhead.
+KrillClaw supports compile-time profiles that select different tool sets for different use cases. Only the selected profile's code is compiled into the binary — zero runtime overhead.
 
 ```bash
 # Coding agent (default) — bash, read/write/edit files, search, apply_patch
@@ -121,12 +121,12 @@ zig build -Dprofile=iot -Dsandbox=true -Doptimize=ReleaseSmall
 ### Config
 ```bash
 # Environment variables
-export YOCTOCLAW_MODEL=claude-opus-4-6
-export YOCTOCLAW_PROVIDER=claude
-export YOCTOCLAW_BASE_URL=https://my-proxy.com
-export YOCTOCLAW_SYSTEM_PROMPT="You are a Go expert..."
+export KRILLCLAW_MODEL=claude-opus-4-6
+export KRILLCLAW_PROVIDER=claude
+export KRILLCLAW_BASE_URL=https://my-proxy.com
+export KRILLCLAW_SYSTEM_PROMPT="You are a Go expert..."
 
-# Or use a config file: .yoctoclaw.json
+# Or use a config file: .krillclaw.json
 {
   "model": "claude-sonnet-4-5-20250929",
   "provider": "claude",
@@ -145,9 +145,9 @@ export YOCTOCLAW_SYSTEM_PROMPT="You are a Go expert..."
 | **Arena Allocator** | Fixed-size memory for embedded, preset sizes (4K–256K), peak tracking | 175 lines | ~+2 KB | `-Dembedded=true` |
 | **Bridge (Python)** | BLE/Serial ↔ HTTP relay, local tool execution | 301 lines | 15 KB download | N/A (separate) |
 
-### vs YoctoClaw Go
+### vs KrillClaw Go
 
-| Metric | YoctoClaw Zig | YoctoClaw Go | Ratio |
+| Metric | KrillClaw Zig | KrillClaw Go | Ratio |
 |--------|:---:|:---:|:---:|
 | **Binary** | ~180 KB | ~8 MB | **45x smaller** |
 | **RAM** | ~2 MB | ~10 MB | **5x less** |
@@ -193,7 +193,7 @@ test/
 
 ## Architecture Decisions
 
-**Why hand-rolled JSON?** — A full JSON parser (even Zig's `std.json`) adds unnecessary code and allocations. YoctoClaw only needs to extract specific keys from API responses and build request bodies. The custom 500-line parser/builder handles both with zero dependencies.
+**Why hand-rolled JSON?** — A full JSON parser (even Zig's `std.json`) adds unnecessary code and allocations. KrillClaw only needs to extract specific keys from API responses and build request bodies. The custom 500-line parser/builder handles both with zero dependencies.
 
 **Why vtable transports?** — The same agent binary should work over HTTP (desktop), BLE (smart ring), or Serial (dev board). The vtable pattern lets us swap the physical layer without changing the agent loop, and feature flags keep the binary small when a transport isn't needed.
 
@@ -205,11 +205,11 @@ test/
 
 ## Embedded / Smart Ring Mode
 
-YoctoClaw can target microcontrollers with BLE. The device runs the agent brain (loop, decisions, state). A phone/laptop bridges to the internet and executes tools.
+KrillClaw can target microcontrollers with BLE. The device runs the agent brain (loop, decisions, state). A phone/laptop bridges to the internet and executes tools.
 
 ```
 ┌─────────────┐       BLE/UART       ┌──────────────┐      HTTPS      ┌─────────┐
-│  YoctoClaw   │ ◄───────────────────► │   Bridge     │ ◄─────────────► │ Claude  │
+│  KrillClaw   │ ◄───────────────────► │   Bridge     │ ◄─────────────► │ Claude  │
 │  (device)   │                       │ (phone/PC)   │                 │ API     │
 │             │                       │              │                 └─────────┘
 │ Agent loop  │  "call bash ls"       │ Executes     │
@@ -240,14 +240,14 @@ zig build -Dembedded=true -Dtarget=thumb-none-eabi -Doptimize=ReleaseSmall
 cd bridge
 pip install -r requirements.txt
 
-# BLE mode (scans for YoctoClaw device)
+# BLE mode (scans for KrillClaw device)
 python bridge.py --ble
 
 # Serial mode
 python bridge.py --serial /dev/ttyUSB0
 
 # Desktop simulation (Unix socket)
-python bridge.py --socket /tmp/yoctoclaw.sock
+python bridge.py --socket /tmp/krillclaw.sock
 ```
 
 ### Target Hardware
@@ -284,7 +284,7 @@ Pre-defined sizes: `Arena4K`, `Arena16K`, `Arena32K`, `Arena128K`, `Arena256K`.
 Use `-Dsandbox=true` for restricted execution. This prevents network access, limits file operations to the working directory, and runs bash commands in an isolated environment.
 
 ```bash
-# Coding profile: bash runs in /tmp/yoctoclaw-sandbox with empty PATH, file ops restricted to cwd
+# Coding profile: bash runs in /tmp/krillclaw-sandbox with empty PATH, file ops restricted to cwd
 zig build -Dsandbox=true -Doptimize=ReleaseSmall
 
 # IoT/Robotics profiles: bridge calls return simulated data (no real MQTT/HTTP/robot commands)
@@ -293,7 +293,7 @@ zig build -Dprofile=iot -Dsandbox=true -Doptimize=ReleaseSmall
 
 ## Security
 
-YoctoClaw executes tools on the host system with the permissions of the running user. Like all coding agents (Claude Code, Aider, Cursor), it can execute arbitrary commands when instructed by the LLM. **Do not run YoctoClaw with elevated privileges.** Use the policy system to restrict tool access.
+KrillClaw executes tools on the host system with the permissions of the running user. Like all coding agents (Claude Code, Aider, Cursor), it can execute arbitrary commands when instructed by the LLM. **Do not run KrillClaw with elevated privileges.** Use the policy system to restrict tool access.
 
 BLE and Serial transports do not currently include encryption or authentication. Use only on trusted networks.
 
@@ -309,7 +309,7 @@ zig build
 zig build -Doptimize=ReleaseSmall
 
 # Check binary size
-ls -la zig-out/bin/yoctoclaw
+ls -la zig-out/bin/krillclaw
 
 # Run tests (39 unit tests across 6 modules)
 zig build test
@@ -347,4 +347,4 @@ zig build size
 
 ## License
 
-MIT
+BSL 1.1 (converts to Apache 2.0 after 4 years)

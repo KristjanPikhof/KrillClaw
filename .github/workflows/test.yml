@@ -20,14 +20,14 @@ jobs:
 
       - name: Binary size gate
         run: |
-          SIZE=$(stat --printf="%s" zig-out/bin/yoctoclaw)
+          SIZE=$(stat --printf="%s" zig-out/bin/krillclaw)
           echo "Binary size: $SIZE bytes"
           [ "$SIZE" -lt 307200 ] || { echo "FAIL: >300KB"; exit 1; }
 
       - name: Smoke test
         run: |
-          ./zig-out/bin/yoctoclaw --version
-          ./zig-out/bin/yoctoclaw --help
+          ./zig-out/bin/krillclaw --version
+          ./zig-out/bin/krillclaw --help
 
       - name: Integration tests
         run: bash test/integration.sh
