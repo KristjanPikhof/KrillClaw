@@ -60,7 +60,7 @@ zig version
 ## 3) Clone and build KrillClaw
 
 ```bash
-git clone https://github.com/krillclaw/KrillClaw.git
+git clone git@github.com:KristjanPikhof/KrillClaw.git
 cd KrillClaw
 
 # release build
