@@ -32,6 +32,8 @@ Every coding agent is a 500MB Electron app or a 50MB Node.js bundle. The actual 
 
 ## Quick Start
 
+For a complete Ubuntu/VPS walkthrough (including Telegram bot setup), see [SETUP.md](./SETUP.md).
+
 ```bash
 # Install Zig 0.13+ from https://ziglang.org/download/
 
@@ -257,6 +259,8 @@ python bridge.py --socket /tmp/krillclaw.sock
 ```
 
 ### Run a Telegram bot (Zig-native)
+
+For full Telegram bot provisioning on Ubuntu/VPS (including systemd service setup), follow [SETUP.md](./SETUP.md).
 
 ```bash
 zig build -Doptimize=ReleaseSmall
