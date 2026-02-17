@@ -205,6 +205,7 @@ fi
 # 5c. No API key graceful error
 unset ANTHROPIC_API_KEY 2>/dev/null || true
 unset OPENAI_API_KEY 2>/dev/null || true
+unset NANO_GPT_API_KEY 2>/dev/null || true
 OUTPUT=$("$BINARY" --provider claude -p "test" 2>&1 || true)
 if echo "$OUTPUT" | grep -qiE "(ANTHROPIC_API_KEY|not set|Error)"; then
     pass "no API key shows graceful error"

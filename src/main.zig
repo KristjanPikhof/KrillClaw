@@ -30,6 +30,7 @@ pub fn main() !void {
         const env_name: []const u8 = switch (config.provider) {
             .claude => "ANTHROPIC_API_KEY",
             .openai => "OPENAI_API_KEY",
+            .nanogpt => "NANO_GPT_API_KEY",
             .ollama => "",
         };
         if (config.provider == .ollama) {
@@ -88,6 +89,7 @@ pub fn main() !void {
             const p = trimmed[10..];
             if (std.mem.eql(u8, p, "claude")) config.provider = .claude;
             if (std.mem.eql(u8, p, "openai")) config.provider = .openai;
+            if (std.mem.eql(u8, p, "nanogpt")) config.provider = .nanogpt;
             if (std.mem.eql(u8, p, "ollama")) config.provider = .ollama;
             try stdout.print("{s}Provider: {s}{s}\n", .{ Color.dim, p, Color.reset });
             continue;
@@ -107,6 +109,7 @@ fn printBanner(w: anytype, config: types.Config) !void {
     const provider_str: []const u8 = switch (config.provider) {
         .claude => "claude",
         .openai => "openai",
+        .nanogpt => "nanogpt",
         .ollama => "ollama",
     };
 

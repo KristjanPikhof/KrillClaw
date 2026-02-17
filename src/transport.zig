@@ -82,7 +82,7 @@ pub fn buildApiRpc(allocator: std.mem.Allocator, provider: []const u8, body: []c
     var buf: std.ArrayList(u8) = .{};
     const w = buf.writer();
     try w.writeAll("{\"type\":\"api\",\"provider\":\"");
-    // Provider is a controlled enum string (claude/openai/ollama) but we
+    // Provider is a controlled enum string (claude/openai/nanogpt/ollama) but we
     // escape anyway for correctness if custom providers are added later.
     for (provider) |c| {
         if (c == '"') try w.writeAll("\\\"") else if (c == '\\') try w.writeAll("\\\\") else try w.writeByte(c);

@@ -2,7 +2,7 @@
 
 **The world's smallest coding agent.**
 
-KrillClaw is a fully autonomous AI coding agent written in Zig. Zero dependencies. One binary. Connects to Claude, OpenAI, or Ollama. Executes tools. Loops until done. Ships under 200KB.
+KrillClaw is a fully autonomous AI coding agent written in Zig. Zero dependencies. One binary. Connects to Claude, OpenAI-compatible APIs (including NanoGPT), and Ollama. Executes tools. Loops until done. Ships under 200KB.
 
 ```
  __   __        _         ___  _
@@ -25,7 +25,7 @@ Every coding agent is a 500MB Electron app or a 50MB Node.js bundle. The actual 
 | **Deps** | **0** | ~500 npm | ~1000+ | ~100 pip | ~50 Go |
 | **Boot** | **<10 ms** | ~2s | ~5s | ~3s | <1s |
 | **Languages** | **Zig** | TypeScript | TypeScript | Python | Go |
-| **Providers** | **3** | 1 | 2 | 10+ | 1 |
+| **Providers** | **4** | 1 | 2 | 10+ | 1 |
 | **BLE/Embedded** | **Yes** | No | No | No | No |
 
 > Source count: ~2,800 lines of core logic + ~500 lines of inline tests. The entire project — including build system, bridge, and integration tests — is under 4,000 lines.
@@ -51,6 +51,10 @@ export ANTHROPIC_API_KEY=sk-ant-...
 # Use OpenAI
 export OPENAI_API_KEY=sk-...
 ./zig-out/bin/krillclaw --provider openai -m gpt-4o "fix the tests"
+
+# Use NanoGPT (OpenAI-compatible)
+export NANO_GPT_API_KEY=sk-nano-...
+./zig-out/bin/krillclaw --provider nanogpt -m openai/gpt-5.2-chat-latest "fix the tests"
 
 # Use local Ollama
 ./zig-out/bin/krillclaw --provider ollama -m llama3 "explain this code"
@@ -102,11 +106,12 @@ zig build -Dprofile=iot -Dsandbox=true -Doptimize=ReleaseSmall
 | `search` | Search for text patterns across files (pure Zig, no shell) |
 | `list_files` | List files with optional glob filter (pure Zig, no shell) |
 
-### Providers (3)
+### Providers (4)
 | Provider | Models | Auth |
 |----------|--------|------|
 | **Claude** | claude-sonnet-4-5, claude-opus-4, etc. | `ANTHROPIC_API_KEY` |
 | **OpenAI** | gpt-4o, gpt-4-turbo, etc. | `OPENAI_API_KEY` |
+| **NanoGPT** | openai/gpt-5.2-chat-latest, anthropic/claude-opus-4.6, etc. | `NANO_GPT_API_KEY` |
 | **Ollama** | llama3, codellama, mistral, etc. | None (local) |
 
 ### Transport Layers
@@ -121,12 +126,13 @@ zig build -Dprofile=iot -Dsandbox=true -Doptimize=ReleaseSmall
 ### Config
 ```bash
 # Environment variables
-export KRILLCLAW_MODEL=claude-opus-4-6
-export KRILLCLAW_PROVIDER=claude
-export KRILLCLAW_BASE_URL=https://my-proxy.com
-export KRILLCLAW_SYSTEM_PROMPT="You are a Go expert..."
+export YOCTOCLAW_MODEL=claude-opus-4-6
+export YOCTOCLAW_PROVIDER=claude
+export YOCTOCLAW_BASE_URL=https://my-proxy.com
+export YOCTOCLAW_SYSTEM_PROMPT="You are a Go expert..."
+export NANO_GPT_API_KEY=sk-nano-...
 
-# Or use a config file: .krillclaw.json
+# Or use a config file: .yoctoclaw.json
 {
   "model": "claude-sonnet-4-5-20250929",
   "provider": "claude",
@@ -155,7 +161,7 @@ export KRILLCLAW_SYSTEM_PROMPT="You are a Go expert..."
 | **Dependencies** | 0 | ~50 Go mods | -- |
 | **Compile time** | ~1 sec | ~5 sec | 5x faster |
 | **Boot time** | <10 ms | <1 sec | ~100x faster |
-| **Providers** | 3 (Claude, OpenAI, Ollama) | 1 (Claude) | 3x |
+| **Providers** | 4 (Claude, OpenAI, NanoGPT, Ollama) | 1 (Claude) | 4x |
 | **Streaming** | Yes (SSE) | No | -- |
 | **BLE/Embedded** | Yes | No | -- |
 | **Garbage collector** | None | Go GC | -- |
@@ -166,7 +172,7 @@ export KRILLCLAW_SYSTEM_PROMPT="You are a Go expert..."
 src/
 ├── main.zig        # CLI, REPL, entry point                           (152 lines)
 ├── agent.zig       # Agent loop + FNV-1a stuck-loop detection         (250 lines)
-├── api.zig         # Multi-provider HTTP client (Claude/OpenAI/Ollama)(329 lines)
+├── api.zig         # Multi-provider HTTP client (Claude/OpenAI/NanoGPT/Ollama)(329 lines)
 ├── stream.zig      # SSE streaming parser with safe string ownership  (344 lines)
 ├── json.zig        # JSON build + extract — zero deps, hand-rolled    (500 lines)
 ├── tools.zig       # Tool dispatcher — comptime profile selection         (140 lines)
@@ -248,6 +254,27 @@ python bridge.py --serial /dev/ttyUSB0
 
 # Desktop simulation (Unix socket)
 python bridge.py --socket /tmp/krillclaw.sock
+```
+
+### Run a Telegram bot (Zig-native)
+
+```bash
+zig build -Doptimize=ReleaseSmall
+export TELEGRAM_BOT_TOKEN=<your_bot_token>
+export TELEGRAM_ALLOWED_CHAT_IDS=123456789,987654321
+export NANO_GPT_API_KEY=sk-nano-...
+
+# Optional overrides
+export YOCTOCLAW_PROVIDER=nanogpt
+export YOCTOCLAW_MODEL=openai/gpt-5.2-chat-latest
+
+./zig-out/bin/yoctoclaw-telegram
+```
+
+Optional safety: restrict who can use your bot.
+
+```bash
+export TELEGRAM_ALLOWED_CHAT_IDS=123456789,987654321
 ```
 
 ### Target Hardware
@@ -333,7 +360,7 @@ zig build size
 | `/quit` `/exit` `/q` | Exit |
 | `/model <name>` | Switch model |
 | `/model` | Show current model |
-| `/provider <name>` | Switch provider (claude/openai/ollama) |
+| `/provider <name>` | Switch provider (claude/openai/nanogpt/ollama) |
 
 ## Known Limitations
 

@@ -19,10 +19,15 @@ pub fn load(allocator: std.mem.Allocator) !types.Config {
         config.api_key = key;
         config.provider = .openai;
     }
+    if (getEnv(allocator, "NANO_GPT_API_KEY")) |key| {
+        config.api_key = key;
+        config.provider = .nanogpt;
+    }
     if (getEnv(allocator, "YOCTOCLAW_MODEL")) |m| config.model = m;
     if (getEnv(allocator, "YOCTOCLAW_PROVIDER")) |p| {
         if (std.mem.eql(u8, p, "claude")) config.provider = .claude;
         if (std.mem.eql(u8, p, "openai")) config.provider = .openai;
+        if (std.mem.eql(u8, p, "nanogpt")) config.provider = .nanogpt;
         if (std.mem.eql(u8, p, "ollama")) config.provider = .ollama;
     }
     if (getEnv(allocator, "YOCTOCLAW_MAX_TOKENS")) |mt| {
@@ -73,6 +78,7 @@ pub fn applyCli(config: *types.Config, allocator: std.mem.Allocator) !?[]const u
             };
             if (std.mem.eql(u8, prov, "claude")) config.provider = .claude;
             if (std.mem.eql(u8, prov, "openai")) config.provider = .openai;
+            if (std.mem.eql(u8, prov, "nanogpt")) config.provider = .nanogpt;
             if (std.mem.eql(u8, prov, "ollama")) {
                 config.provider = .ollama;
                 config.streaming = false; // Ollama streaming format differs
@@ -118,6 +124,7 @@ fn loadConfigFile(allocator: std.mem.Allocator) ?types.Config {
         if (json.extractString(content, "provider")) |p| {
             if (std.mem.eql(u8, p, "claude")) config.provider = .claude;
             if (std.mem.eql(u8, p, "openai")) config.provider = .openai;
+            if (std.mem.eql(u8, p, "nanogpt")) config.provider = .nanogpt;
             if (std.mem.eql(u8, p, "ollama")) config.provider = .ollama;
         }
         if (json.extractInt(content, "max_tokens")) |mt| config.max_tokens = mt;
@@ -161,7 +168,7 @@ pub fn printHelp() void {
         \\Options:
         \\  -m, --model MODEL       Model name (default: claude-sonnet-4-5-20250929)
         \\  -p, --prompt TEXT       Run a single prompt and exit
-        \\  --provider PROVIDER     claude, openai, or ollama
+        \\  --provider PROVIDER     claude, openai, nanogpt, or ollama
         \\  --base-url URL          Custom API base URL
         \\  --no-stream             Disable streaming
         \\  --transport TYPE        http, ble, or serial
@@ -173,6 +180,7 @@ pub fn printHelp() void {
         \\Environment:
         \\  ANTHROPIC_API_KEY       Claude API key
         \\  OPENAI_API_KEY          OpenAI API key (auto-selects openai provider)
+        \\  NANO_GPT_API_KEY        NanoGPT API key (auto-selects nanogpt provider)
         \\  YOCTOCLAW_MODEL          Model override
         \\  YOCTOCLAW_PROVIDER       Provider override
         \\  YOCTOCLAW_BASE_URL       API base URL override

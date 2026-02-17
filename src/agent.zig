@@ -51,6 +51,15 @@ pub const Agent = struct {
 
     /// Run the ReAct agent loop: think → act → observe, max 10 iterations.
     pub fn run(self: *Agent, prompt: []const u8) !void {
+        _ = try self.runInternal(prompt, true);
+    }
+
+    /// Run a single prompt and return final assistant text without stdout output.
+    pub fn runForResponse(self: *Agent, prompt: []const u8) ![]const u8 {
+        return (try self.runInternal(prompt, false)) orelse try self.allocator.dupe(u8, "No response.");
+    }
+
+    fn runInternal(self: *Agent, prompt: []const u8, emit_logs: bool) !?[]const u8 {
         // Add user message
         const user_content = try self.allocator.alloc(types.ContentBlock, 1);
         user_content[0] = .{
@@ -63,20 +72,25 @@ pub const Agent = struct {
         });
 
         var iteration: u32 = 0;
+        var final_text: ?[]const u8 = null;
         while (iteration < react.MAX_ITERATIONS) : (iteration += 1) {
             // Context window management
             try self.context.truncate(&self.messages);
 
             // === THINK: Call LLM ===
-            try self.stdout.print("\n{s}[think]{s} ", .{ Color.cyan, Color.reset });
+            if (emit_logs) {
+                try self.stdout.print("\n{s}[think]{s} ", .{ Color.cyan, Color.reset });
+            }
 
             const response = if (self.config.streaming)
-                self.client.sendMessagesStreaming(self.messages.items, &printTextDelta) catch |err| {
-                    return self.handleApiError(err);
+                self.client.sendMessagesStreaming(self.messages.items, if (emit_logs) &printTextDelta else null) catch |err| {
+                    _ = self.handleApiError(err, emit_logs) catch {};
+                    return err;
                 }
             else
                 self.client.sendMessages(self.messages.items) catch |err| {
-                    return self.handleApiError(err);
+                    _ = self.handleApiError(err, emit_logs) catch {};
+                    return err;
                 };
 
             self.total_input_tokens += response.input_tokens;
@@ -94,21 +108,28 @@ pub const Agent = struct {
             switch (step) {
                 .done => {
                     // Print text if not streaming
-                    if (!self.config.streaming) {
+                    if (!self.config.streaming and emit_logs) {
                         if (react.extractThought(response.content)) |thought| {
                             try self.stdout.print("{s}", .{thought});
                         }
                     }
-                    try self.stdout.print("\n", .{});
+                    if (emit_logs) {
+                        try self.stdout.print("\n", .{});
+                    }
+                    if (react.extractThought(response.content)) |thought| {
+                        final_text = try self.allocator.dupe(u8, thought);
+                    }
                     break;
                 },
                 .max_tokens => {
-                    try self.stdout.print("\n{s}(max tokens){s}\n", .{ Color.yellow, Color.reset });
+                    if (emit_logs) {
+                        try self.stdout.print("\n{s}(max tokens){s}\n", .{ Color.yellow, Color.reset });
+                    }
                     break;
                 },
                 .needs_observation => {
                     // Print thought (reasoning before action) if not streaming
-                    if (!self.config.streaming) {
+                    if (!self.config.streaming and emit_logs) {
                         if (react.extractThought(response.content)) |thought| {
                             try self.stdout.print("{s}", .{thought});
                         }
@@ -118,29 +139,31 @@ pub const Agent = struct {
                     for (response.content) |block| {
                         if (block.type != .tool_use) continue;
                         const tu = block.tool_use orelse continue;
-                        try self.stdout.print("\n{s}[act]{s} {s}{s}{s}", .{
-                            Color.yellow, Color.reset,
-                            Color.bold,   tu.name,
-                            Color.reset,
-                        });
-                        // Show tool-specific context
-                        if (std.mem.eql(u8, tu.name, "bash")) {
-                            if (json.extractString(tu.input_raw, "command")) |c| {
-                                try self.stdout.print(" {s}{s}{s}", .{ Color.dim, c, Color.reset });
+                        if (emit_logs) {
+                            try self.stdout.print("\n{s}[act]{s} {s}{s}{s}", .{
+                                Color.yellow, Color.reset,
+                                Color.bold, tu.name,
+                                Color.reset,
+                            });
+                            // Show tool-specific context
+                            if (std.mem.eql(u8, tu.name, "bash")) {
+                                if (json.extractString(tu.input_raw, "command")) |c| {
+                                    try self.stdout.print(" {s}{s}{s}", .{ Color.dim, c, Color.reset });
+                                }
+                            } else if (std.mem.eql(u8, tu.name, "read_file") or
+                                std.mem.eql(u8, tu.name, "write_file") or
+                                std.mem.eql(u8, tu.name, "edit_file"))
+                            {
+                                if (json.extractString(tu.input_raw, "path")) |p| {
+                                    try self.stdout.print(" {s}{s}{s}", .{ Color.dim, p, Color.reset });
+                                }
+                            } else if (std.mem.eql(u8, tu.name, "search")) {
+                                if (json.extractString(tu.input_raw, "pattern")) |p| {
+                                    try self.stdout.print(" {s}/{s}/{s}", .{ Color.dim, p, Color.reset });
+                                }
                             }
-                        } else if (std.mem.eql(u8, tu.name, "read_file") or
-                            std.mem.eql(u8, tu.name, "write_file") or
-                            std.mem.eql(u8, tu.name, "edit_file"))
-                        {
-                            if (json.extractString(tu.input_raw, "path")) |p| {
-                                try self.stdout.print(" {s}{s}{s}", .{ Color.dim, p, Color.reset });
-                            }
-                        } else if (std.mem.eql(u8, tu.name, "search")) {
-                            if (json.extractString(tu.input_raw, "pattern")) |p| {
-                                try self.stdout.print(" {s}/{s}/{s}", .{ Color.dim, p, Color.reset });
-                            }
+                            try self.stdout.print("\n", .{});
                         }
-                        try self.stdout.print("\n", .{});
                     }
 
                     // Execute all tools via react module
@@ -155,17 +178,19 @@ pub const Agent = struct {
                     for (tool_results) |result| {
                         const output = result.content orelse "";
                         const display = if (output.len > 500) output[0..500] else output;
-                        if (result.is_error) {
-                            try self.stdout.print("{s}[observe]{s} {s}{s}{s}\n", .{
-                                Color.red, Color.reset, Color.red, display, Color.reset,
-                            });
-                        } else {
-                            try self.stdout.print("{s}[observe]{s} {s}{s}{s}\n", .{
-                                Color.green, Color.reset, Color.dim, display, Color.reset,
-                            });
-                        }
-                        if (output.len > 500) {
-                            try self.stdout.print("{s}... ({d} bytes total){s}\n", .{ Color.dim, output.len, Color.reset });
+                        if (emit_logs) {
+                            if (result.is_error) {
+                                try self.stdout.print("{s}[observe]{s} {s}{s}{s}\n", .{
+                                    Color.red, Color.reset, Color.red, display, Color.reset,
+                                });
+                            } else {
+                                try self.stdout.print("{s}[observe]{s} {s}{s}{s}\n", .{
+                                    Color.green, Color.reset, Color.dim, display, Color.reset,
+                                });
+                            }
+                            if (output.len > 500) {
+                                try self.stdout.print("{s}... ({d} bytes total){s}\n", .{ Color.dim, output.len, Color.reset });
+                            }
                         }
                     }
 
@@ -179,30 +204,38 @@ pub const Agent = struct {
         }
 
         if (iteration >= react.MAX_ITERATIONS) {
-            try self.stdout.print("\n{s}(react: max {d} iterations reached){s}\n", .{
-                Color.yellow, react.MAX_ITERATIONS, Color.reset,
-            });
+            if (emit_logs) {
+                try self.stdout.print("\n{s}(react: max {d} iterations reached){s}\n", .{
+                    Color.yellow, react.MAX_ITERATIONS, Color.reset,
+                });
+            }
         }
 
         // Usage summary
-        const ctx_usage = self.context.usageString(self.allocator, self.messages.items) catch "?";
-        try self.stdout.print("{s}[tokens] in:{d} out:{d} | ctx:{s}{s}\n", .{
-            Color.dim,
-            self.total_input_tokens,
-            self.total_output_tokens,
-            ctx_usage,
-            Color.reset,
-        });
+        if (emit_logs) {
+            const ctx_usage = self.context.usageString(self.allocator, self.messages.items) catch "?";
+            try self.stdout.print("{s}[tokens] in:{d} out:{d} | ctx:{s}{s}\n", .{
+                Color.dim,
+                self.total_input_tokens,
+                self.total_output_tokens,
+                ctx_usage,
+                Color.reset,
+            });
+        }
+
+        return final_text;
     }
 
-    fn handleApiError(self: *Agent, err: anyerror) !void {
-        try self.stdout.print("{s}API error: {}{s}\n", .{ Color.red, err, Color.reset });
-        if (err == api.ApiError.RateLimited) {
-            try self.stdout.print("{s}Rate limited. Wait and retry.{s}\n", .{ Color.yellow, Color.reset });
-        } else if (err == api.ApiError.AuthError) {
-            try self.stdout.print("{s}Check your API key.{s}\n", .{ Color.yellow, Color.reset });
-        } else if (err == api.ApiError.ConnectionRefused) {
-            try self.stdout.print("{s}Cannot connect. Check base URL and network.{s}\n", .{ Color.yellow, Color.reset });
+    fn handleApiError(self: *Agent, err: anyerror, emit_logs: bool) !void {
+        if (emit_logs) {
+            try self.stdout.print("{s}API error: {}{s}\n", .{ Color.red, err, Color.reset });
+            if (err == api.ApiError.RateLimited) {
+                try self.stdout.print("{s}Rate limited. Wait and retry.{s}\n", .{ Color.yellow, Color.reset });
+            } else if (err == api.ApiError.AuthError) {
+                try self.stdout.print("{s}Check your API key.{s}\n", .{ Color.yellow, Color.reset });
+            } else if (err == api.ApiError.ConnectionRefused) {
+                try self.stdout.print("{s}Cannot connect. Check base URL and network.{s}\n", .{ Color.yellow, Color.reset });
+            }
         }
         return err;
     }

@@ -60,7 +60,7 @@ pub const Client = struct {
         // Build request body based on provider
         const body = switch (config.provider) {
             .claude => try json.buildClaudeRequest(self.allocator, config, messages),
-            .openai, .ollama => try json.buildOpenAiRequest(self.allocator, config, messages),
+            .openai, .nanogpt, .ollama => try json.buildOpenAiRequest(self.allocator, config, messages),
         };
         defer self.allocator.free(body);
 
@@ -79,7 +79,7 @@ pub const Client = struct {
                 .{ .name = "anthropic-version", .value = CLAUDE_API_VERSION },
                 .{ .name = "content-type", .value = "application/json" },
             },
-            .openai => blk: {
+            .openai, .nanogpt => blk: {
                 const auth = std.fmt.bufPrint(&auth_buf, "Bearer {s}", .{config.api_key}) catch return ApiError.OutOfMemory;
                 break :blk &.{
                     .{ .name = "Authorization", .value = auth },
@@ -162,7 +162,7 @@ pub const Client = struct {
 fn parseResponse(allocator: std.mem.Allocator, body: []const u8, provider: types.Provider) !types.ApiResponse {
     return switch (provider) {
         .claude => parseClaudeResponse(allocator, body),
-        .openai, .ollama => parseOpenAiResponse(allocator, body),
+        .openai, .nanogpt, .ollama => parseOpenAiResponse(allocator, body),
     };
 }
 

@@ -5,12 +5,14 @@ const std = @import("std");
 pub const Provider = enum {
     claude,
     openai,
+    nanogpt,
     ollama,
 
     pub fn baseUrl(self: Provider) []const u8 {
         return switch (self) {
             .claude => "https://api.anthropic.com",
             .openai => "https://api.openai.com",
+            .nanogpt => "https://nano-gpt.com/api/v1",
             .ollama => "http://localhost:11434",
         };
     }
@@ -19,6 +21,7 @@ pub const Provider = enum {
         return switch (self) {
             .claude => "/v1/messages",
             .openai => "/v1/chat/completions",
+            .nanogpt => "/chat/completions",
             .ollama => "/api/chat",
         };
     }

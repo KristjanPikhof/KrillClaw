@@ -32,11 +32,26 @@ pub fn build(b: *std.Build) void {
         .root_module = mod,
     });
 
+    const telegram_mod = b.createModule(.{
+        .root_source_file = b.path("src/telegram_main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    telegram_mod.addOptions("build_options", options);
+
+    const telegram_exe = b.addExecutable(.{
+        .name = "yoctoclaw-telegram",
+        .root_module = telegram_mod,
+    });
+
     // Size optimization: strip debug info and frame pointers
     exe.root_module.strip = true;
     exe.root_module.omit_frame_pointer = true;
+    telegram_exe.root_module.strip = true;
+    telegram_exe.root_module.omit_frame_pointer = true;
 
     b.installArtifact(exe);
+    b.installArtifact(telegram_exe);
 
     // Run step
     const run_cmd = b.addRunArtifact(exe);
