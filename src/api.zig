@@ -95,6 +95,8 @@ pub const Client = struct {
 
         // Use request() for both streaming and non-streaming
         var req = self.http_client.request(.POST, uri, .{
+            .version = .@"HTTP/1.1",
+            .keep_alive = false,
             .extra_headers = extra_headers,
         }) catch return ApiError.ConnectionRefused;
         defer req.deinit();
